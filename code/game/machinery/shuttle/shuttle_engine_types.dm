@@ -115,7 +115,7 @@
 
 /obj/machinery/power/shuttle/engine/fire
 	name = "combustion thruster"
-	desc = "A thruster that burns fuel with oxider that is stored in an adjacent heater."
+	desc = "A thruster that burns fuel with oxidizer that is stored in an adjacent heater."
 	icon_state = "burst_plasma"
 	icon_state_off = "burst_plasma_off"
 	circuit = /obj/item/circuitboard/machine/shuttle/engine/fire
