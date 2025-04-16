@@ -11,7 +11,7 @@
 #define DAMAGE_HIGH 3
 
 /// Temperature the fuel is temporarily raised to
-#define IGNITION_TEMP 3000
+#define IGNITION_TEMP 3600
 /// Volume of the combustion chamber
 #define COMBUSTION_CHAMBER_VOLUME 25
 /// The constant that pressure is divided by to calculate thrust
