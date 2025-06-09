@@ -38,6 +38,9 @@
 		"brown hoodie" = "hoodiebrown",
 		"light brown hoodie" = "hoodielightbrown"
 	)
+	body_parts_covered = CHEST|GROIN|ARMS
+	cold_protection = CHEST|GROIN|ARMS
+	min_cold_protection_temperature = FIRE_SUIT_MIN_TEMP_PROTECT
 
 /obj/item/clothing/head/hooded/hood
 	name = "hood"
@@ -47,6 +50,8 @@
 	icon = 'icons/obj/clothing/head/color.dmi'
 	mob_overlay_icon = 'icons/mob/clothing/head/color.dmi'
 	body_parts_covered = HEAD
+	cold_protection = HEAD
+	min_cold_protection_temperature = FIRE_SUIT_MIN_TEMP_PROTECT
 	flags_inv = HIDEHAIR|HIDEEARS
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0) //it's just a hoodie.
 	supports_variations = KEPORI_VARIATION
