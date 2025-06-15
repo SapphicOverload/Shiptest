@@ -8531,7 +8531,10 @@
 /area/ship/security)
 "Zu" = (
 /obj/structure/cable,
-/obj/machinery/power/smes/engineering,
+/obj/machinery/power/smes/engineering{
+	input_level = 10000;
+	output_level = 5000
+	},
 /obj/structure/sign/warning/coldtemp{
 	pixel_x = -32
 	},
