@@ -552,6 +552,19 @@
 	..()
 	gas_max -= GAS_PLASMA
 
+/obj/item/organ/lungs/sarathi
+	name = "blue lungs"
+	desc = "Spongy blue lungs from a sarathi."
+	icon_state = "lungs-sarathi"
+
+	cold_level_1_threshold = 230
+	cold_level_2_threshold = 210
+	cold_level_3_threshold = 190
+
+	heat_level_1_threshold = 353
+	heat_level_2_threshold = 375
+	heat_level_3_threshold = 380
+
 /obj/item/organ/lungs/slime
 	name = "vacuole"
 	desc = "A large organelle designed to store oxygen and other important gasses."
