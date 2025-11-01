@@ -1878,12 +1878,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 						else
 							to_chat(user, span_danger("Invalid color. Your color is not bright enough."))
 
-				if("tail_human")
-					var/new_tail
-					new_tail = input(user, "Choose your character's tail:", "Character Preference") as null|anything in GLOB.tails_list_human
-					if(new_tail)
-						features["tail_human"] = new_tail
-
 				if("face_markings")
 					var/new_face_markings
 					new_face_markings = input(user, "Choose your character's face markings:", "Character Preference") as null|anything in GLOB.face_markings_list
@@ -2027,12 +2021,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 					new_elzu_horns = input(user, "Choose your character's horns:", "Character Preference") as null|anything in GLOB.elzu_horns_list
 					if(new_elzu_horns)
 						features["elzu_horns"] = new_elzu_horns
-
-				if("tail_elzu")
-					var/new_tail
-					new_tail = input(user, "Choose your character's tail:", "Character Preference") as null|anything in GLOB.tails_list_elzu
-					if(new_tail)
-						features["tail_elzu"] = new_tail
 
 				if("s_tone")
 					var/new_s_tone = input(user, "Choose your character's skin-tone:", "Character Preference")  as null|anything in GLOB.skin_tones
@@ -2187,7 +2175,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 								continue
 							if(!(pref_species.bodytype & initial(part_candidate.bodytype))) // don't allow vox and kepori to select limbs that aren't compatible
 								continue
-							limb_options[chassis] = chassis
+							limb_options[initial(part_candidate.name)] = part_candidate
 						var/status = tgui_input_list(user, "You are modifying your [parse_zone(limb)], what should it be changed to?", "Bodypart Selection", limb_options)
 						if(status)
 							custom_limbs[limb] = limb_options[status]
@@ -2549,11 +2537,14 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	character.set_species(chosen_species, icon_update = FALSE, pref_load = TRUE, robotic = fbp)
 
 	for(var/pros_limb in custom_limbs)
-		if(!(pros_limb in pref_species.species_limbs))
-			continue
 		var/obj/item/bodypart/old_part = character.get_bodypart(pros_limb)
 		if(old_part)
 			icon_updates = TRUE
+		if(!(pros_limb in (pref_species.species_limbs | pref_species.species_optional_limbs)))
+			if(old_part)
+				old_part.drop_limb(TRUE)
+				qdel(old_part)
+			continue
 		switch(custom_limbs[pros_limb])
 			if(PROSTHETIC_NORMAL)
 				if(old_part)

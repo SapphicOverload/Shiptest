@@ -256,41 +256,6 @@
 	name = "Synth Ram"
 	icon_state = "ram_synth"
 
-// Start tails
-
-/datum/sprite_accessory/ipc_tail
-	icon = 'icons/mob/ipc_accessories.dmi'
-	color_src = MUTCOLORS
-
-/datum/sprite_accessory/ipc_tail/none
-	name = "None"
-	icon_state = "none"
-
-/datum/sprite_accessory/ipc_tail/lizard
-	name = "Synthetic Sarathi"
-	icon_state = "synth"
-
-/datum/sprite_accessory/ipc_tail/lizard_big
-	name = "Synthetic Sarathi Large"
-	icon_state = "large"
-
-/datum/sprite_accessory/ipc_tail/plug
-	name = "Power Plug"
-	icon_state = "plug"
-	secondary_color = TRUE
-
-/datum/sprite_accessory/ipc_tail/cat
-	name = "Pawsitrons Cat"
-	icon_state = "cat"
-
-/datum/sprite_accessory/ipc_tail/fox
-	name = "Pawsitrons Fox"
-	icon_state = "fox"
-
-/datum/sprite_accessory/ipc_tail/fox_alt
-	name = "Pawsitrons Fox 2"
-	icon_state = "fox2"
-
 // Start chassis - the worst thing ever please rework this
 
 /datum/sprite_accessory/ipc_chassis // Used for changing limb icons, doesn't need to hold the actual icon. That's handled in ipc.dm

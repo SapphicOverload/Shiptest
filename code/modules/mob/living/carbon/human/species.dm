@@ -400,12 +400,12 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 	//Note for future: Potentionally add a new C.dna.species() to build a template species for more accurate limb replacement
 
 	var/obj/item/bodypart/old_part
-	var/list/all_zones = new_species.species_limbs
+	var/list/all_zones = new_species.species_limbs | C.bodyparts
 	if(old_species)
 		all_zones |= old_species.species_limbs
 	for(var/zone in all_zones)
 		old_part = C.bodyparts[zone]
-		if(!old_part && (zone in old_species.species_limbs)) // if the old species has a bodypart by default but it's missing, don't replace it
+		if(!old_part && (zone in old_species?.species_limbs)) // if the old species has a bodypart by default but it's missing, don't replace it
 			continue
 		var/obj/item/bodypart/new_part = C.new_body_part(zone, robotic, FALSE, new_species)
 		if(new_part)
@@ -708,12 +708,12 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 				if(!HAS_TRAIT(H, TRAIT_EYESCLOSED) && !(H.stat == DEAD))
 
 					if(iskepori(H)) // Kepori need sclera but don't fit the normal silhouette, so this needs changing. Make better later.
-						eye_overlay = mutable_appearance('icons/mob/species/kepori/kepori_eyes.dmi', eyes.eye_icon_state, -BODYPARTS_LAYER)
-						sclera_overlay = mutable_appearance('icons/mob/species/kepori/kepori_eyes.dmi', eyes.sclera_icon_state, -BODYPARTS_LAYER)
+						eye_overlay = mutable_appearance('icons/mob/species/kepori/kepori_eyes.dmi', eyes.eye_icon_state, -BODY_LAYER)
+						sclera_overlay = mutable_appearance('icons/mob/species/kepori/kepori_eyes.dmi', eyes.sclera_icon_state, -BODY_LAYER)
 
 					else
-						eye_overlay = mutable_appearance(species_eye_path || 'icons/mob/human_face.dmi', eyes.eye_icon_state, -BODYPARTS_LAYER)
-						sclera_overlay = mutable_appearance('icons/mob/human_face.dmi', eyes.sclera_icon_state, -BODYPARTS_LAYER)
+						eye_overlay = mutable_appearance(species_eye_path || 'icons/mob/human_face.dmi', eyes.eye_icon_state, -BODY_LAYER)
+						sclera_overlay = mutable_appearance('icons/mob/human_face.dmi', eyes.sclera_icon_state, -BODY_LAYER)
 
 					if(HD.greyscale_eyes && eyes)
 						eye_overlay.color = "#" + H.eye_color
@@ -816,25 +816,9 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 
 	var/obj/item/bodypart/head/HD = H.get_bodypart(BODY_ZONE_HEAD)
 
-	if("tail_human" in mutant_bodyparts)
-		if(H.wear_suit && (H.wear_suit.flags_inv & HIDEJUMPSUIT))
-			bodyparts_to_add -= "tail_human"
-
-	if("waggingtail_human" in mutant_bodyparts)
-		if(H.wear_suit && (H.wear_suit.flags_inv & HIDEJUMPSUIT))
-			bodyparts_to_add -= "waggingtail_human"
-		else if ("tail_human" in mutant_bodyparts)
-			bodyparts_to_add -= "waggingtail_human"
-
 	if("spines" in mutant_bodyparts)
 		if(!H.dna.features["spines"] || H.dna.features["spines"] == "None" || H.wear_suit && (H.wear_suit.flags_inv & HIDEJUMPSUIT))
 			bodyparts_to_add -= "spines"
-
-	if("waggingspines" in mutant_bodyparts)
-		if(!H.dna.features["spines"] || H.dna.features["spines"] == "None" || H.wear_suit && (H.wear_suit.flags_inv & HIDEJUMPSUIT))
-			bodyparts_to_add -= "waggingspines"
-		else if ("tail" in mutant_bodyparts)
-			bodyparts_to_add -= "waggingspines"
 
 	if("face_markings" in mutant_bodyparts) //Take a closer look at that snout! //technically
 		if((H.wear_mask?.flags_inv & HIDEFACE) || (H.head?.flags_inv & HIDEFACE) || !HD)
@@ -920,17 +904,12 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 	for(var/layer in relevent_layers)
 		var/layertext = mutant_bodyparts_layertext(layer)
 
+		var/obj/item/bodypart/tail/our_tail = H.get_bodypart(BODY_ZONE_TAIL)
 		for(var/bodypart in bodyparts_to_add)
 			var/datum/sprite_accessory/S
 			switch(bodypart)
-				if("tail_human")
-					S = GLOB.tails_list_human[H.dna.features["tail_human"]]
-				if("waggingtail_human")
-					S = GLOB.animated_tails_list_human[H.dna.features["tail_human"]]
 				if("spines")
-					S = GLOB.spines_list[H.dna.features["spines"]]
-				if("waggingspines")
-					S = GLOB.animated_spines_list[H.dna.features["spines"]]
+					S = our_tail?.wagging ? GLOB.animated_spines_list[H.dna.features["spines"]] : GLOB.spines_list[H.dna.features["spines"]] // FUCK
 				if("face_markings")
 					S = GLOB.face_markings_list[H.dna.features["face_markings"]]
 				if("frills")
@@ -979,10 +958,6 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 					S = GLOB.vox_neck_quills_list[H.dna.features["vox_neck_quills"]]
 				if("elzu_horns")
 					S = GLOB.elzu_horns_list[H.dna.features["elzu_horns"]]
-				if("tail_elzu")
-					S = GLOB.tails_list_elzu[H.dna.features["tail_elzu"]]
-				if("waggingtail_elzu")
-					S = GLOB.animated_tails_list_elzu[H.dna.features["tail_elzu"]]
 			if(!S || S.icon_state == "none")
 				continue
 

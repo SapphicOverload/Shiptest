@@ -440,4 +440,4 @@
 		limb_id = "[initial(limb_id)]_wagging"
 	else
 		limb_id = initial(limb_id)
-	owner?.update_body_parts(TRUE)
+	owner?.update_body()

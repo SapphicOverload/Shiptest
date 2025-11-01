@@ -116,11 +116,15 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	if(current_version < 43)
 		var/list/prosthetic_limbs = list()
 		READ_FILE(S["prosthetic_limbs"], prosthetic_limbs)
+		var/static/list/basic_options = list(PROSTHETIC_NORMAL, PROSTHETIC_AMPUTATED, PROSTHETIC_ROBOTIC)
 		for(var/zone in custom_limbs)
 			var/old_limb = prosthetic_limbs[zone]
 			if(!old_limb)
 				continue
-			custom_limbs[zone] = prosthetic_limbs[zone]
+			if(old_limb in GLOB.ipc_chassis_list)
+				var/datum/sprite_accessory/ipc_chassis/chassis_of_choice = GLOB.ipc_chassis_list[old_limb]
+				old_limb = chassis_of_choice.chassis_bodyparts[zone]
+			custom_limbs[zone] = old_limb
 
 /// checks through keybindings for outdated unbound keys and updates them
 /datum/preferences/proc/check_keybindings()
@@ -578,7 +582,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	features["mcolor"]					= sanitize_hexcolor(features["mcolor"])
 	features["mcolor2"]					= sanitize_hexcolor(features["mcolor2"])
 	features["ethcolor"]				= copytext_char(features["ethcolor"], 1, 7)
-	features["tail_human"]				= sanitize_inlist(features["tail_human"], GLOB.tails_list_human, "None")
 	features["face_markings"]			= sanitize_inlist(features["face_markings"], GLOB.face_markings_list)
 	features["horns"]					= sanitize_inlist(features["horns"], GLOB.horns_list)
 	features["ears"]					= sanitize_inlist(features["ears"], GLOB.ears_list, "None")
@@ -602,7 +605,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	features["vox_head_quills"]			= sanitize_inlist(features["vox_head_quills"], GLOB.vox_head_quills_list, "None")
 	features["vox_neck_quills"]			= sanitize_inlist(features["vox_neck_quills"], GLOB.vox_neck_quills_list, "None")
 	features["elzu_horns"]				= sanitize_inlist(features["elzu_horns"], GLOB.elzu_horns_list)
-	features["tail_elzu"]				= sanitize_inlist(features["tail_elzu"], GLOB.tails_list_elzu)
 	features["flavor_text"]				= sanitize_text(features["flavor_text"], initial(features["flavor_text"]))
 
 	all_quirks = SANITIZE_LIST(all_quirks)

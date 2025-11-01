@@ -33,6 +33,8 @@
 	var/bodypart_layer = BODYPARTS_LAYER
 	///Should it automatically rename itself based on limb_id and body_zone?
 	var/dynamic_rename = TRUE
+	///Used in place of the actual limb ID on examine and renaming.
+	var/examine_id
 
 	/// The icon state of the limb's overlay, colored with a different color
 	var/overlay_icon_state
@@ -151,8 +153,7 @@
 
 /obj/item/bodypart/Initialize()
 	. = ..()
-	if(dynamic_rename)
-		name = "[limb_id] [parse_zone(body_zone)]"
+	name = "[examine_id || limb_id] [plaintext_zone]"
 	update_icon_dropped()
 
 	if(!IS_ORGANIC_LIMB(src))

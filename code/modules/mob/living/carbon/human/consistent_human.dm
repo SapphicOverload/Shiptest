@@ -34,7 +34,6 @@
 	dna.features["vox_head_quills"] = GLOB.vox_head_quills_list[hex2num(copytext(seed, 14, 15)) % length(GLOB.vox_head_quills_list) + 1]
 	dna.features["vox_neck_quills"] = GLOB.vox_neck_quills_list[hex2num(copytext(seed, 15, 16)) % length(GLOB.vox_neck_quills_list) + 1]
 	dna.features["elzu_horns"] = GLOB.elzu_horns_list[hex2num(copytext(seed, 16, 17)) % length(GLOB.elzu_horns_list) + 1]
-	dna.features["tail_elzu"] = GLOB.tails_list_elzu[hex2num(copytext(seed, 17, 18)) % length(GLOB.tails_list_elzu) + 1]
 	dna.features["ipc_chassis"] = GLOB.ipc_chassis_list[hex2num(copytext(seed, 18, 19)) % length(GLOB.ipc_chassis_list) + 1]
 	dna.features["ipc_screen"] = GLOB.ipc_screens_list[hex2num(copytext(seed, 19, 20)) % length(GLOB.ipc_screens_list) + 1]
 
