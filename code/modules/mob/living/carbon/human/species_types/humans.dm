@@ -22,6 +22,15 @@
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/robot/surplus/human,
 	)
 
+	species_optional_limbs = list(BODY_ZONE_TAIL = list(
+		/obj/item/bodypart/tail/human/cat,
+		/obj/item/bodypart/tail/human/dog,
+		/obj/item/bodypart/tail/human/fox,
+		/obj/item/bodypart/tail/human/fox/alt,
+		/obj/item/bodypart/tail/human/horse,
+		/obj/item/bodypart/tail/human/rabbit,
+	))
+
 	robotic_eyes = /obj/item/organ/eyes/robotic
 
 /datum/species/human/on_species_gain(mob/living/carbon/C, datum/species/old_species, pref_load)
@@ -42,27 +51,5 @@
 			mutantears = /obj/item/organ/ears/rabbit/floppy
 		if("Horse")
 			mutantears = /obj/item/organ/ears/horse
-	switch(C.dna.features["tail_human"])
-		if("Cat")
-			mutant_organs |= /obj/item/organ/tail/cat
-		if("Dog")
-			mutant_organs |= /obj/item/organ/tail/dog
-		if("Fox")
-			mutant_organs |= /obj/item/organ/tail/fox
-		if("Fox 2")
-			mutant_organs |= /obj/item/organ/tail/fox/alt
-		if("Rabbit")
-			mutant_organs |= /obj/item/organ/tail/rabbit
-		if("Horse")
-			mutant_organs |= /obj/item/organ/tail/horse
 
 	return ..()
-
-/datum/species/human/spec_death(gibbed, mob/living/carbon/human/H)
-	if(H)
-		stop_wagging_tail(H)
-
-/datum/species/human/spec_stun(mob/living/carbon/human/H,amount)
-	if(H)
-		stop_wagging_tail(H)
-	. = ..()

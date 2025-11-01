@@ -5,6 +5,7 @@
 	max_damage = 200
 	body_zone = BODY_ZONE_CHEST
 	body_part = CHEST
+	body_weight = 64
 	plaintext_zone = "chest"
 	px_x = 0
 	px_y = 0
@@ -239,6 +240,7 @@
 	desc = "Some athletes prefer to tie their left shoelaces first for good \
 		luck. In this instance, it probably would not have helped."
 	icon_state = "human_l_leg"
+	mask_icon = 'icons/mob/leg_masks.dmi'
 	attack_verb = list("kicks", "stomps")
 	max_damage = 50
 	body_zone = BODY_ZONE_L_LEG
@@ -321,6 +323,7 @@
 		The hokey pokey has certainly changed a lot since space colonisation."
 	// alternative spellings of 'pokey' are available
 	icon_state = "human_r_leg"
+	mask_icon = 'icons/mob/leg_masks.dmi'
 	attack_verb = list("kicks", "stomps")
 	max_damage = 50
 	body_zone = BODY_ZONE_R_LEG
@@ -399,3 +402,42 @@
 	can_be_disabled = FALSE
 	max_damage = 100
 	animal_origin = ALIEN_BODYPART
+
+/obj/item/bodypart/tail
+	name = "tail"
+	desc = "A severed tail. What did you cut this off of?"
+	mask_icon = 'icons/mob/tail_masks.dmi'
+	plaintext_zone = "tail"
+	bodypart_layer = BODY_FRONT_LAYER
+	body_zone = BODY_ZONE_TAIL
+	body_part = TAIL
+	dismemberable = TRUE
+	can_be_disabled = TRUE
+	body_damage_coeff = 0.5
+	max_damage = 20
+	max_stamina_damage = 20
+	body_weight = 4 // hard to hit, but very weak
+	/// Allows use of the *thump emote
+	var/can_thump = FALSE
+	/// Whether the tail has an animated sprite
+	var/can_wag = TRUE
+	/// Should this be currently using the animated sprite?
+	var/wagging = FALSE
+
+/obj/item/bodypart/tail/set_disabled(new_disabled)
+	if(..())
+		set_wag(FALSE)
+		return TRUE
+	return FALSE
+
+/obj/item/bodypart/tail/proc/set_wag(new_state = FALSE)
+	if(!can_wag)
+		return
+	if(new_state == wagging)
+		return
+	wagging = new_state
+	if(wagging)
+		limb_id = "[initial(limb_id)]_wagging"
+	else
+		limb_id = initial(limb_id)
+	owner?.update_body_parts(TRUE)

@@ -29,6 +29,8 @@
 	var/is_dimorphic = FALSE
 	///Greyscale draw color
 	var/draw_color
+	/// The layer this bodypart should draw on
+	var/bodypart_layer = BODYPARTS_LAYER
 	///Should it automatically rename itself based on limb_id and body_zone?
 	var/dynamic_rename = TRUE
 
@@ -44,6 +46,8 @@
 	var/aux_layer
 	///bitflag used to check which clothes cover this bodypart
 	var/body_part = null
+	///The weighting this limb is given when randomly selecting one.
+	var/body_weight = 8
 	var/list/embedded_objects = list()
 	///Are we a hand? if so, which one!
 	var/held_index = 0
@@ -96,6 +100,9 @@
 	var/px_y = 0
 
 	var/species_flags_list = list()
+
+	/// If specified, this bodypart will be masked using the given file. Currently used for legs and tails.
+	var/mask_icon
 
 	///the type of damage overlay (if any) to use when this bodypart is bruised/burned.
 	var/dmg_overlay_type
@@ -296,7 +303,7 @@
 
 	var/mangled_state = get_mangled_state()
 	var/bio_state = owner.get_biological_state()
-	var/easy_dismember = HAS_TRAIT(owner, TRAIT_EASYDISMEMBER) // if we have easydismember, we don't reduce damage when redirecting damage to different types (slashing weapons on mangled/skinless limbs attack at 100% instead of 50%)
+	var/easy_dismember = HAS_TRAIT(owner, TRAIT_EASYDISMEMBER) || HAS_TRAIT(src, TRAIT_EASYDISMEMBER) // if we have easydismember, we don't reduce damage when redirecting damage to different types (slashing weapons on mangled/skinless limbs attack at 100% instead of 50%)
 
 	if(wounding_type == WOUND_BLUNT && sharpness)
 		wounding_type = (sharpness == SHARP_EDGED ? WOUND_SLASH : WOUND_PIERCE)
@@ -881,7 +888,7 @@
 			if(burnstate)
 				. += image(dmg_overlay_icon, "[dmg_overlay_type]_[body_zone]_0[burnstate]", -DAMAGE_LAYER, image_dir)
 
-	var/image/limb = image(layer = -BODYPARTS_LAYER, dir = image_dir)
+	var/image/limb = image(layer = -bodypart_layer, dir = image_dir)
 	var/image/aux
 	//. += limb
 
@@ -947,14 +954,14 @@
 			overlay.color = "#[species_secondary_color]"
 			. += overlay
 
-	//Ok so legs are a bit goofy in regards to layering, and we will need two images instead of one to fix that
-	if((body_zone == BODY_ZONE_R_LEG) || (body_zone == BODY_ZONE_L_LEG))
-		var/obj/item/bodypart/leg/leg_source = src
+	//Ok so certain bodyparts are a bit goofy in regards to layering, and we will need two images instead of one to fix that
+	if(mask_icon)
+		var/obj/item/bodypart/limb_source = src
 		for(var/image/limb_image in .)
 			//remove the old, unmasked image
 			. -= limb_image
 			//add two masked images based on the old one
-			. += leg_source.generate_masked_leg(limb_image, image_dir)
+			. += limb_source.generate_masked_limb(limb_image, image_dir)
 
 	/*if(!is_husked)
 		//Draw external organs like horns and frills

@@ -90,7 +90,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 							"grad_style" = "None",
 							"grad_color" = "FFF",
 							"ethcolor" = "9c3030",
-							"tail_lizard" = "Smooth",
 							"tail_human" = "None",
 							"face_markings" = "None",
 							"horns" = "None",
@@ -108,7 +107,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 							"squid_face" = "Squidward",
 							"ipc_screen" = "Blue",
 							"ipc_antenna" = "None",
-							"ipc_tail" = "None",
 							"ipc_chassis" = "Morpheus Cyberkinetics (Custom)",
 							"ipc_brain" = "Posibrain",
 							"kepori_feathers" = "None",
@@ -118,7 +116,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 							"vox_head_quills" = "Plain",
 							"vox_neck_quills" = "Plain",
 							"elzu_horns" = "None",
-							"elzu_tail" = "None",
 							"flavor_text" = ""
 						)
 	var/height_filter = "Normal"
@@ -145,13 +142,14 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 							"Other" = "plural",
 							"None" = "neuter"
 						)
-	var/list/prosthetic_limbs = list(
+	var/list/custom_limbs = list(
 							BODY_ZONE_HEAD = PROSTHETIC_NORMAL,
 							BODY_ZONE_CHEST = PROSTHETIC_NORMAL,
 							BODY_ZONE_L_ARM = PROSTHETIC_NORMAL,
 							BODY_ZONE_R_ARM = PROSTHETIC_NORMAL,
 							BODY_ZONE_L_LEG = PROSTHETIC_NORMAL,
 							BODY_ZONE_R_LEG = PROSTHETIC_NORMAL,
+							BODY_ZONE_TAIL = PROSTHETIC_NORMAL,
 						)
 	var/fbp = FALSE
 	var/phobia = "spiders"
@@ -519,19 +517,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 			//Mutant stuff
 			var/mutant_category = 0
 
-			if("tail_lizard" in pref_species.default_features)
-				if(!mutant_category)
-					dat += APPEARANCE_CATEGORY_COLUMN
-
-				dat += "<h3>Tail</h3>"
-
-				dat += "<a href='byond://?_src_=prefs;preference=tail_lizard;task=input'>[features["tail_lizard"]]</a><BR>"
-
-				mutant_category++
-				if(mutant_category >= MAX_MUTANT_ROWS)
-					dat += "</td>"
-					mutant_category = 0
-
 			if("face_markings" in pref_species.default_features)
 				if(!mutant_category)
 					dat += APPEARANCE_CATEGORY_COLUMN
@@ -699,19 +684,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 				dat += "<a href='byond://?_src_=prefs;preference=ipc_antenna;task=input'>[features["ipc_antenna"]]</a><BR>"
 
 				dat += "<span style='border:1px solid #161616; background-color: #[facial_hair_color];'>&nbsp;&nbsp;&nbsp;</span> <a href='byond://?_src_=prefs;preference=facial;task=input'>Change</a><BR>"
-
-				mutant_category++
-				if(mutant_category >= MAX_MUTANT_ROWS)
-					dat += "</td>"
-					mutant_category = 0
-
-			if("ipc_tail" in pref_species.default_features)
-				if(!mutant_category)
-					dat += APPEARANCE_CATEGORY_COLUMN
-
-				dat += "<h3>Tail Style</h3>"
-
-				dat += "<a href='byond://?_src_=prefs;preference=ipc_tail;task=input'>[features["ipc_tail"]]</a><BR>"
 
 				mutant_category++
 				if(mutant_category >= MAX_MUTANT_ROWS)
@@ -922,18 +894,20 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 			dat += "</tr></table>"
 
 			var/metal_skin = fbp || pref_species.inherent_biotypes & MOB_ROBOTIC
-			dat += metal_skin ? "<h3>Chassis Customization</h3>" : "<h3>Prosthetic Limbs</h3>"
+			dat += metal_skin ? "<h3>Chassis Customization</h3>" : "<h3>Body Part Customization</h3>"
 			dat += "<a href='byond://?_src_=prefs;preference=fbp'>Full Body Prosthesis: [fbp ? "Yes" : "No"]</a><br>"
 
 			dat += "<a href='byond://?_src_=prefs;preference=toggle_random;random_type=[RANDOM_PROSTHETIC]'>Random Prosthetic: [(randomise[RANDOM_PROSTHETIC]) ? "Yes" : "No"]</a><br>"
 
 			dat += "<table>"
-			for(var/index in prosthetic_limbs)
+			for(var/index in custom_limbs)
 				if(!metal_skin && (index == BODY_ZONE_CHEST || index == BODY_ZONE_HEAD))
 					continue
-				var/bodypart_name = parse_zone(index)
-				dat += "<tr><td><b>[bodypart_name]:</b></td>"
-				dat += "<td><a href='byond://?_src_=prefs;preference=limbs;customize_limb=[index]'>[prosthetic_limbs[index]]</a></td></tr>"
+				if(!pref_species.species_limbs[index] && !pref_species.species_optional_limbs[index])
+					continue
+				var/obj/item/bodypart/limb = custom_limbs[index]
+				dat += "<tr><td><b>[parse_zone(index)]:</b></td>"
+				dat += "<td><a href='byond://?_src_=prefs;preference=limbs;customize_limb=[index]'>[istext(limb) ? limb : initial(limb.name)]</a></td></tr>"
 			dat += "</table><br>"
 
 		if(2) //Loadout
@@ -1904,13 +1878,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 						else
 							to_chat(user, span_danger("Invalid color. Your color is not bright enough."))
 
-
-				if("tail_lizard")
-					var/new_tail
-					new_tail = input(user, "Choose your character's tail:", "Character Preference") as null|anything in GLOB.tails_list_lizard
-					if(new_tail)
-						features["tail_lizard"] = new_tail
-
 				if("tail_human")
 					var/new_tail
 					new_tail = input(user, "Choose your character's tail:", "Character Preference") as null|anything in GLOB.tails_list_human
@@ -2004,14 +1971,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 
 					if(new_ipc_antenna)
 						features["ipc_antenna"] = new_ipc_antenna
-
-				if("ipc_tail")
-					var/new_ipc_tail
-
-					new_ipc_tail = input(user, "Choose your character's tail:", "Character Preference") as null|anything in GLOB.ipc_tail_list
-
-					if(new_ipc_tail)
-						features["ipc_tail"] = new_ipc_tail
 
 				if("ipc_chassis")
 					var/new_ipc_chassis
@@ -2209,20 +2168,29 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 				if("limbs")
 					if(href_list["customize_limb"])
 						var/limb = href_list["customize_limb"]
-						var/list/limb_options = list(PROSTHETIC_NORMAL, PROSTHETIC_ROBOTIC)
+						var/list/limb_options = list()
+						if(pref_species.species_limbs[limb])
+							limb_options["Normal"] = PROSTHETIC_NORMAL
+						if(pref_species.species_robotic_limbs[limb])
+							limb_options["Robotic"] = PROSTHETIC_ROBOTIC
 						if(limb != BODY_ZONE_CHEST && limb != BODY_ZONE_HEAD)
-							limb_options.Add(PROSTHETIC_AMPUTATED) // starting without a head or chest causes instant death, must be disallowed
+							limb_options["None"] = PROSTHETIC_AMPUTATED // starting without a head or chest causes instant death, must be disallowed
+						if(limb in pref_species.species_optional_limbs) // special bodypart options! mainly used for tails
+							for(var/obj/item/bodypart/limb_type as anything in pref_species.species_optional_limbs[limb])
+								limb_options[initial(limb_type.name)] = limb_type
 						var/datum/sprite_accessory/ipc_chassis/limb_style
 						var/obj/item/bodypart/part_candidate
 						for(var/chassis in GLOB.ipc_chassis_list)
 							limb_style = GLOB.ipc_chassis_list[chassis]
 							part_candidate = limb_style.chassis_bodyparts[limb]
+							if(!part_candidate)
+								continue
 							if(!(pref_species.bodytype & initial(part_candidate.bodytype))) // don't allow vox and kepori to select limbs that aren't compatible
 								continue
-							limb_options.Add(chassis)
-						var/status = input(user, "You are modifying your [parse_zone(limb)], what should it be changed to?", "Character Preference", prosthetic_limbs[limb]) in limb_options
+							limb_options[chassis] = chassis
+						var/status = tgui_input_list(user, "You are modifying your [parse_zone(limb)], what should it be changed to?", "Bodypart Selection", limb_options)
 						if(status)
-							prosthetic_limbs[limb] = status
+							custom_limbs[limb] = limb_options[status]
 
 				if("hotkeys")
 					hotkeys = !hotkeys
@@ -2522,7 +2490,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 		real_name = pref_species.random_name(gender)
 
 	if(randomise[RANDOM_PROSTHETIC] && !character_setup)
-		prosthetic_limbs = random_prosthetic()
+		custom_limbs = random_prosthetic()
 
 	if(roundstart_checks)
 		if(CONFIG_GET(flag/humans_need_surnames) && (pref_species.id == SPECIES_HUMAN))
@@ -2580,11 +2548,13 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	character.dna.features = features.Copy()
 	character.set_species(chosen_species, icon_update = FALSE, pref_load = TRUE, robotic = fbp)
 
-	for(var/pros_limb in prosthetic_limbs)
+	for(var/pros_limb in custom_limbs)
+		if(!(pros_limb in pref_species.species_limbs))
+			continue
 		var/obj/item/bodypart/old_part = character.get_bodypart(pros_limb)
 		if(old_part)
 			icon_updates = TRUE
-		switch(prosthetic_limbs[pros_limb])
+		switch(custom_limbs[pros_limb])
 			if(PROSTHETIC_NORMAL)
 				if(old_part)
 					old_part.drop_limb(TRUE)
@@ -2596,7 +2566,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 					qdel(old_part)
 				if(pros_limb == BODY_ZONE_CHEST || pros_limb == BODY_ZONE_HEAD)
 					stack_trace("[parent] somehow had their [parse_zone(pros_limb)] set to [PROSTHETIC_AMPUTATED]!")
-					prosthetic_limbs[pros_limb] = PROSTHETIC_NORMAL
+					custom_limbs[pros_limb] = PROSTHETIC_NORMAL
 					character.regenerate_limb(pros_limb, robotic = fbp)
 			if(PROSTHETIC_ROBOTIC)
 				if(old_part)
@@ -2604,15 +2574,19 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 					qdel(old_part)
 				character.regenerate_limb(pros_limb, robotic = TRUE)
 			else
-				var/datum/sprite_accessory/ipc_chassis/limb_style = GLOB.ipc_chassis_list[prosthetic_limbs[pros_limb]]
-				var/obj/item/bodypart/new_part = limb_style.chassis_bodyparts[pros_limb]
+				var/obj/item/bodypart/new_part = custom_limbs[pros_limb]
+				if(istext(new_part))
+					var/datum/sprite_accessory/ipc_chassis/limb_style = GLOB.ipc_chassis_list[new_part]
+					new_part = limb_style.chassis_bodyparts[pros_limb]
+				//else if(!character_setup)
+					//character.dna.species.species_limbs[pros_limb] = new_part
 				new_part = new new_part()
 				if(old_part)
 					old_part.drop_limb(TRUE)
 					qdel(old_part)
 				if(!(new_part.bodytype & pref_species.bodytype))
-					stack_trace("[parent] had [limb_style.name] selected, which isn't compatible with [pref_species.name]!")
-					prosthetic_limbs[pros_limb] = PROSTHETIC_NORMAL
+					stack_trace("[parent] had [new_part.name] selected as their [new_part.plaintext_zone], which isn't compatible with [pref_species.name]!")
+					custom_limbs[pros_limb] = PROSTHETIC_NORMAL
 					character.regenerate_limb(pros_limb, robotic = fbp)
 					continue
 				if(new_part.should_draw_greyscale) // species that don't use mutant colors normally should still be able to color prosthetics that do
@@ -2632,9 +2606,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	character.hairstyle = hairstyle
 	character.facial_hairstyle = facial_hairstyle
 	character.grad_style = features["grad_style"]
-
-	if("tail_lizard" in pref_species.default_features)
-		character.dna.species.mutant_bodyparts |= "tail_lizard"
 
 	if(icon_updates)
 		character.update_body()

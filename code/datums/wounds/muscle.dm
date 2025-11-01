@@ -5,7 +5,7 @@
 	name = "Muscle Wound"
 	wound_type = WOUND_MUSCLE
 	wound_flags = (FLESH_WOUND | ACCEPTS_SPLINT)
-	viable_zones = list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+	excluded_zones = list(BODY_ZONE_CHEST, BODY_ZONE_HEAD)
 	processes = TRUE
 	///How much do we need to regen. Will regen faster if we're splinted and or laying down
 	var/regen_ticks_needed

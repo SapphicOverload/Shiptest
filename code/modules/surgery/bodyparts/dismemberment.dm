@@ -452,9 +452,10 @@
 	return
 
 /mob/living/carbon/regenerate_limb(limb_zone, noheal, robotic = FALSE)
-	var/obj/item/bodypart/L
 	if(get_bodypart(limb_zone))
 		return FALSE
-	L = new_body_part(limb_zone, robotic, FALSE)
-	L.replace_limb(src, TRUE, TRUE)
+	var/obj/item/bodypart/new_part = new_body_part(limb_zone, robotic, FALSE)
+	if(!new_part)
+		return FALSE
+	new_part.replace_limb(src, TRUE, TRUE)
 	return TRUE

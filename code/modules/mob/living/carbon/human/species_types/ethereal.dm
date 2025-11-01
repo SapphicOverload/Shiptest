@@ -35,7 +35,6 @@
 	mutant_bodyparts = list("elzu_horns", "tail_elzu")
 	default_features = list("elzu_horns" = "None", "tail_elzu" = "None")
 	species_eye_path = 'icons/mob/ethereal_parts.dmi'
-	mutant_organs = list(/obj/item/organ/tail/elzu)
 
 	species_limbs = list(
 		BODY_ZONE_CHEST = /obj/item/bodypart/chest/ethereal,
@@ -44,7 +43,13 @@
 		BODY_ZONE_R_ARM = /obj/item/bodypart/r_arm/ethereal,
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/ethereal,
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/ethereal,
+		BODY_ZONE_TAIL = /obj/item/bodypart/tail/elzu,
 	)
+
+	species_optional_limbs = list(BODY_ZONE_TAIL = list(
+		/obj/item/bodypart/tail/elzu/bifurcated,
+		/obj/item/bodypart/tail/elzu/stubby,
+	))
 
 	var/current_color
 	var/EMPeffect = FALSE

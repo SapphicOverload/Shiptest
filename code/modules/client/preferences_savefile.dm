@@ -5,7 +5,7 @@
 //	You do not need to raise this if you are adding new values that have sane defaults.
 //	Only raise this value when changing the meaning/format/name/layout of an existing value
 //	where you would want the updater procs below to run
-#define SAVEFILE_VERSION_MAX 42
+#define SAVEFILE_VERSION_MAX 43
 
 /*
 SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Carn
@@ -107,13 +107,20 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		READ_FILE(S["species"], species_id)
 		if(species_id == "felinid")
 			pref_species = new /datum/species/human
-			features["tail_human"] = "Cat"
+			custom_limbs[BODY_ZONE_TAIL] = /obj/item/bodypart/tail/human/cat
 			features["ears"] = "Cat"
 	if(current_version < 42)
 		var/body_size
 		READ_FILE(S["body_size"], body_size)
 		height_filter = body_size
-
+	if(current_version < 43)
+		var/list/prosthetic_limbs = list()
+		READ_FILE(S["prosthetic_limbs"], prosthetic_limbs)
+		for(var/zone in custom_limbs)
+			var/old_limb = prosthetic_limbs[zone]
+			if(!old_limb)
+				continue
+			custom_limbs[zone] = prosthetic_limbs[zone]
 
 /// checks through keybindings for outdated unbound keys and updates them
 /datum/preferences/proc/check_keybindings()
@@ -438,11 +445,11 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	READ_FILE(S["generic_adjective"], generic_adjective)
 	READ_FILE(S["randomise"],  randomise)
 	READ_FILE(S["height_filter"], height_filter)
-	READ_FILE(S["prosthetic_limbs"], prosthetic_limbs)
-	prosthetic_limbs ||= list(BODY_ZONE_HEAD = PROSTHETIC_NORMAL, BODY_ZONE_CHEST = PROSTHETIC_NORMAL, BODY_ZONE_L_ARM = PROSTHETIC_NORMAL, BODY_ZONE_R_ARM = PROSTHETIC_NORMAL, BODY_ZONE_L_LEG = PROSTHETIC_NORMAL, BODY_ZONE_R_LEG = PROSTHETIC_NORMAL)
-	for(var/zone in list(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG))
-		if(!prosthetic_limbs[zone])
-			prosthetic_limbs[zone] = PROSTHETIC_NORMAL // necessary to prevent old savefiles from breaking the interface
+	READ_FILE(S["custom_limbs"], custom_limbs)
+	custom_limbs ||= list(BODY_ZONE_HEAD = PROSTHETIC_NORMAL, BODY_ZONE_CHEST = PROSTHETIC_NORMAL, BODY_ZONE_L_ARM = PROSTHETIC_NORMAL, BODY_ZONE_R_ARM = PROSTHETIC_NORMAL, BODY_ZONE_L_LEG = PROSTHETIC_NORMAL, BODY_ZONE_R_LEG = PROSTHETIC_NORMAL)
+	for(var/zone in list(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_TAIL))
+		if(!custom_limbs[zone])
+			custom_limbs[zone] = PROSTHETIC_NORMAL // necessary to prevent old savefiles from breaking the interface
 	READ_FILE(S["learned_languages"], learned_languages)
 	if(!learned_languages?.len) init_learned_languages()
 	READ_FILE(S["native_language"], native_language)
@@ -450,7 +457,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	READ_FILE(S["feature_mcolor"], features["mcolor"])
 	READ_FILE(S["feature_mcolor2"], features["mcolor2"])
 	READ_FILE(S["feature_ethcolor"], features["ethcolor"])
-	READ_FILE(S["feature_lizard_tail"], features["tail_lizard"])
 	READ_FILE(S["feature_lizard_face_markings"], features["face_markings"])
 	READ_FILE(S["feature_lizard_horns"], features["horns"])
 	READ_FILE(S["feature_lizard_frills"], features["frills"])
@@ -468,7 +474,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	READ_FILE(S["feature_squid_face"], features["squid_face"])
 	READ_FILE(S["feature_ipc_screen"], features["ipc_screen"])
 	READ_FILE(S["feature_ipc_antenna"], features["ipc_antenna"])
-	READ_FILE(S["feature_ipc_tail"], features["ipc_tail"])
 	READ_FILE(S["feature_ipc_chassis"], features["ipc_chassis"])
 	READ_FILE(S["feature_ipc_brain"], features["ipc_brain"])
 	READ_FILE(S["feature_kepori_feathers"], features["kepori_feathers"])
@@ -493,7 +498,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 			equipped_gear -= gear //be GONE
 			WRITE_FILE(S["equipped_gear"], equipped_gear)
 
-	READ_FILE(S["feature_human_tail"], features["tail_human"])
 	READ_FILE(S["feature_human_ears"], features["ears"])
 
 	READ_FILE(S["fbp"], fbp)
@@ -574,7 +578,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	features["mcolor"]					= sanitize_hexcolor(features["mcolor"])
 	features["mcolor2"]					= sanitize_hexcolor(features["mcolor2"])
 	features["ethcolor"]				= copytext_char(features["ethcolor"], 1, 7)
-	features["tail_lizard"]				= sanitize_inlist(features["tail_lizard"], GLOB.tails_list_lizard)
 	features["tail_human"]				= sanitize_inlist(features["tail_human"], GLOB.tails_list_human, "None")
 	features["face_markings"]			= sanitize_inlist(features["face_markings"], GLOB.face_markings_list)
 	features["horns"]					= sanitize_inlist(features["horns"], GLOB.horns_list)
@@ -590,7 +593,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	features["squid_face"]				= sanitize_inlist(features["squid_face"], GLOB.squid_face_list, "Squidward")
 	features["ipc_screen"]				= sanitize_inlist(features["ipc_screen"], GLOB.ipc_screens_list)
 	features["ipc_antenna"]				= sanitize_inlist(features["ipc_antenna"], GLOB.ipc_antennas_list)
-	features["ipc_tail"]				= sanitize_inlist(features["ipc_tail"], GLOB.ipc_tail_list)
 	features["ipc_chassis"]				= sanitize_inlist(features["ipc_chassis"], GLOB.ipc_chassis_list)
 	features["ipc_brain"]				= sanitize_inlist(features["ipc_brain"], GLOB.ipc_brain_list)
 	features["kepori_feathers"]			= sanitize_inlist(features["kepori_feathers"], GLOB.kepori_feathers_list, "Plain")
@@ -644,14 +646,12 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["phobia"]						, phobia)
 	WRITE_FILE(S["generic_adjective"]			, generic_adjective)
 	WRITE_FILE(S["height_filter"]				, height_filter)
-	WRITE_FILE(S["prosthetic_limbs"]			, prosthetic_limbs)
+	WRITE_FILE(S["custom_limbs"]				, custom_limbs)
 	WRITE_FILE(S["learned_languages"]			, learned_languages)
 	WRITE_FILE(S["native_language"]				, native_language)
 	WRITE_FILE(S["feature_mcolor"]				, features["mcolor"])
 	WRITE_FILE(S["feature_mcolor2"]				, features["mcolor2"])
 	WRITE_FILE(S["feature_ethcolor"]			, features["ethcolor"])
-	WRITE_FILE(S["feature_lizard_tail"]			, features["tail_lizard"])
-	WRITE_FILE(S["feature_human_tail"]			, features["tail_human"])
 	WRITE_FILE(S["feature_lizard_face_markings"], features["face_markings"])
 	WRITE_FILE(S["feature_lizard_horns"]		, features["horns"])
 	WRITE_FILE(S["feature_human_ears"]			, features["ears"])
@@ -670,7 +670,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["feature_squid_face"]			, features["squid_face"])
 	WRITE_FILE(S["feature_ipc_screen"]			, features["ipc_screen"])
 	WRITE_FILE(S["feature_ipc_antenna"]			, features["ipc_antenna"])
-	WRITE_FILE(S["feature_ipc_tail"] 			, features["ipc_tail"])
 	WRITE_FILE(S["feature_ipc_chassis"]			, features["ipc_chassis"])
 	WRITE_FILE(S["feature_ipc_brain"]			, features["ipc_brain"])
 	WRITE_FILE(S["feature_kepori_feathers"]		, features["kepori_feathers"])

@@ -225,7 +225,7 @@
 	examine_desc = "is awkwardly janked out of place"
 	occur_text = "janks violently and becomes unseated"
 	severity = WOUND_SEVERITY_MODERATE
-	viable_zones = list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+	excluded_zones = list(BODY_ZONE_CHEST, BODY_ZONE_HEAD)
 	interaction_efficiency_penalty = 1.2
 	limp_slowdown = 2.25
 	limp_chance = 50

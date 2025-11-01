@@ -239,6 +239,9 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/robot/surplus,
 	)
 
+	/// Optional limbs that this species may or may not have, depending on preferences.
+	var/list/obj/item/bodypart/species_optional_limbs = list()
+
 	var/obj/item/organ/heart/robotic_heart = /obj/item/organ/heart/cybernetic
 	var/obj/item/organ/lungs/robotic_lungs = /obj/item/organ/lungs/cybernetic
 	var/obj/item/organ/eyes/robotic_eyes = /obj/item/organ/eyes/robotic
@@ -402,7 +405,7 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		all_zones |= old_species.species_limbs
 	for(var/zone in all_zones)
 		old_part = C.bodyparts[zone]
-		if(!old_part && (zone in C.bodyparts)) // if the old species has a bodypart by default but it's missing, don't replace it
+		if(!old_part && (zone in old_species.species_limbs)) // if the old species has a bodypart by default but it's missing, don't replace it
 			continue
 		var/obj/item/bodypart/new_part = C.new_body_part(zone, robotic, FALSE, new_species)
 		if(new_part)
@@ -920,10 +923,6 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		for(var/bodypart in bodyparts_to_add)
 			var/datum/sprite_accessory/S
 			switch(bodypart)
-				if("tail_lizard")
-					S = GLOB.tails_list_lizard[H.dna.features["tail_lizard"]]
-				if("waggingtail_lizard")
-					S = GLOB.animated_tails_list_lizard[H.dna.features["tail_lizard"]]
 				if("tail_human")
 					S = GLOB.tails_list_human[H.dna.features["tail_human"]]
 				if("waggingtail_human")
@@ -958,8 +957,6 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 					S = GLOB.ipc_screens_list[H.dna.features["ipc_screen"]]
 				if("ipc_antenna")
 					S = GLOB.ipc_antennas_list[H.dna.features["ipc_antenna"]]
-				if("ipc_tail")
-					S = GLOB.ipc_tail_list[H.dna.features["ipc_tail"]]
 				if("ipc_chassis")
 					S = GLOB.ipc_chassis_list[H.dna.features["ipc_chassis"]]
 				if("ipc_brain")
@@ -991,12 +988,7 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 
 			var/mutable_appearance/accessory_overlay = mutable_appearance(S.icon, layer = -layer)
 
-			//A little rename so we don't have to use tail_lizard, tail_human, or tail_elzu when naming the sprites.
 			accessory_overlay.alpha = S.image_alpha
-			if(bodypart == "tail_lizard" || bodypart == "tail_human" || bodypart == "tail_elzu")
-				bodypart = "tail"
-			else if(bodypart == "waggingtail_lizard" || bodypart == "waggingtail_human" || bodypart == "waggingtail_elzu")
-				bodypart = "waggingtail"
 
 			var/used_color_src = S.color_src
 
@@ -2225,50 +2217,6 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 	if(H.movement_type & FLYING)
 		return TRUE
 	return FALSE
-
-////////////////
-//Tail Wagging//
-////////////////
-
-/datum/species/proc/can_wag_tail(mob/living/carbon/human/H)
-	return (locate(/obj/item/organ/tail) in H.internal_organs)
-
-/datum/species/proc/is_wagging_tail(mob/living/carbon/human/H)
-	return ("waggingtail_human" in mutant_bodyparts) || ("waggingtail_lizard" in mutant_bodyparts) || ("waggingtail_elzu" in mutant_bodyparts)
-
-/datum/species/proc/start_wagging_tail(mob/living/carbon/human/H)
-	if("tail_human" in mutant_bodyparts)
-		mutant_bodyparts -= "tail_human"
-		mutant_bodyparts |= "waggingtail_human"
-
-	else if("tail_lizard" in mutant_bodyparts)
-		mutant_bodyparts -= "tail_lizard"
-		mutant_bodyparts -= "spines"
-		mutant_bodyparts |= "waggingtail_lizard"
-		mutant_bodyparts |= "waggingspines"
-
-	else if("tail_elzu" in mutant_bodyparts)
-		mutant_bodyparts -= "tail_elzu"
-		mutant_bodyparts |= "waggingtail_elzu"
-
-	H.update_body()
-
-/datum/species/proc/stop_wagging_tail(mob/living/carbon/human/H)
-	if("waggingtail_human" in mutant_bodyparts)
-		mutant_bodyparts -= "waggingtail_human"
-		mutant_bodyparts |= "tail_human"
-
-	else if("waggingtail_lizard" in mutant_bodyparts)
-		mutant_bodyparts -= "waggingtail_lizard"
-		mutant_bodyparts -= "waggingspines"
-		mutant_bodyparts |= "tail_lizard"
-		mutant_bodyparts |= "spines"
-
-	else if("waggingtail_elzu" in mutant_bodyparts)
-		mutant_bodyparts -= "waggingtail_elzu"
-		mutant_bodyparts |= "tail_elzu"
-
-	H.update_body()
 
 ///////////////
 //FLIGHT SHIT//

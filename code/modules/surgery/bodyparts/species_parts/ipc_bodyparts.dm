@@ -102,6 +102,43 @@
 	medium_burn_msg = "scorched"
 	heavy_burn_msg = "seared"
 
+/obj/item/bodypart/tail/ipc
+	static_icon = 'icons/mob/species/ipc/bodyparts.dmi'
+	icon = 'icons/mob/species/ipc/bodyparts.dmi'
+	name = "robot tail"
+	desc = "Do robots even need these?"
+	dynamic_rename = FALSE
+	bodytype = BODYTYPE_HUMANOID | BODYTYPE_ROBOTIC
+
+/obj/item/bodypart/tail/ipc/plug
+	name = "power cord tail"
+	desc = "A long power cord connected to nothing."
+	icon_state = "plug_tail"
+	limb_id = "plug"
+	uses_mutcolor = TRUE
+	overlay_icon_state = TRUE
+	can_wag = FALSE
+
+/obj/item/bodypart/tail/ipc/fox
+	name = "synthetic fox tail"
+	desc = "At least, you hope it's synthetic."
+	icon_state = "fox_tail"
+	limb_id = "fox"
+	can_wag = FALSE
+
+/obj/item/bodypart/tail/ipc/fox/alt
+	name = "synthetic fox tail (alt)"
+	icon_state = "fox2_tail"
+	limb_id = "fox2"
+	can_wag = FALSE
+
+/obj/item/bodypart/tail/ipc/cat
+	name = "synthetic cat tail"
+	desc = "At least, you hope it's synthetic."
+	icon_state = "cat_tail"
+	limb_id = "cat"
+	can_wag = FALSE
+
 // MORPHEUS CYBERKINETICS
 
 /obj/item/bodypart/head/ipc/morpheus
@@ -518,6 +555,29 @@
 	uses_mutcolor = TRUE
 	should_draw_greyscale = TRUE
 	overlay_icon_state = TRUE
+
+/obj/item/bodypart/tail/ipc/pgf
+	name = "\improper PGF Mechanics tail"
+	icon_state = "synth_tail"
+	limb_id = "synth"
+	max_damage = 30
+	max_stamina_damage = 30
+	body_damage_coeff = 0.6
+	body_weight = 8
+	uses_mutcolor = TRUE
+	overlay_icon_state = TRUE
+	can_wag = FALSE
+	can_thump = TRUE
+
+/obj/item/bodypart/tail/ipc/pgf/large
+	name = "\improper PGF Mechanics large tail"
+	icon_state = "large_synth_tail"
+	limb_id = "large_synth"
+	max_damage = 50
+	max_stamina_damage = 50
+	body_damage_coeff = 0.75
+	body_weight = 16
+	can_wag = TRUE
 
 // PGF MECHANICS TYPE-D
 

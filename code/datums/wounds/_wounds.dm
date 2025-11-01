@@ -35,8 +35,8 @@
 	/// The list of wounds it belongs in, WOUND_BLUNT, WOUND_SLASH, WOUND_BURN, WOUND_MUSCLE
 	var/wound_type
 
-	/// What body zones can we affect
-	var/list/viable_zones = list(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
+	/// What body zones can we can't affect
+	var/list/excluded_zones = list()
 	/// Who owns the body part that we're wounding
 	var/mob/living/carbon/victim = null
 	/// The bodypart we're parented to
@@ -109,7 +109,7 @@
  * * attack_direction: For bloodsplatters, if relevant
  */
 /datum/wound/proc/apply_wound(obj/item/bodypart/L, silent = FALSE, datum/wound/old_wound = null, smited = FALSE, attack_direction = null)
-	if(!istype(L) || !L.owner || !(L.body_zone in viable_zones) || !IS_ORGANIC_LIMB(L) || HAS_TRAIT(L.owner, TRAIT_NEVER_WOUNDED))
+	if(!istype(L) || !L.owner || (L.body_zone in excluded_zones) || !IS_ORGANIC_LIMB(L) || HAS_TRAIT(L.owner, TRAIT_NEVER_WOUNDED))
 		qdel(src)
 		return
 

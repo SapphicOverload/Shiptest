@@ -34,6 +34,8 @@
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/jelly,
 	)
 
+	species_optional_limbs = list(BODY_ZONE_TAIL = list(/obj/item/bodypart/tail/human/cat/slime))
+
 /datum/species/jelly/on_species_loss(mob/living/carbon/C)
 	if(regenerate_limbs)
 		regenerate_limbs.Remove(C)
@@ -82,33 +84,6 @@
 	to_chat(H, span_userdanger("Your [consumed_limb] is drawn back into your body, unable to maintain its shape!"))
 	qdel(consumed_limb)
 	H.blood_volume += 20
-
-/datum/species/jelly/spec_death(gibbed, mob/living/carbon/human/H)
-	if(H)
-		stop_wagging_tail(H)
-
-/datum/species/jelly/spec_stun(mob/living/carbon/human/H,amount)
-	if(H)
-		stop_wagging_tail(H)
-	. = ..()
-
-/datum/species/jelly/can_wag_tail(mob/living/carbon/human/H)
-	return ("tail_human" in mutant_bodyparts) || ("waggingtail_human" in mutant_bodyparts)
-
-/datum/species/jelly/is_wagging_tail(mob/living/carbon/human/H)
-	return ("waggingtail_human" in mutant_bodyparts)
-
-/datum/species/jelly/start_wagging_tail(mob/living/carbon/human/H)
-	if("tail_human" in mutant_bodyparts)
-		mutant_bodyparts -= "tail_human"
-		mutant_bodyparts |= "waggingtail_human"
-	H.update_body()
-
-/datum/species/jelly/stop_wagging_tail(mob/living/carbon/human/H)
-	if("waggingtail_human" in mutant_bodyparts)
-		mutant_bodyparts -= "waggingtail_human"
-		mutant_bodyparts |= "tail_human"
-	H.update_body()
 
 /datum/action/innate/regenerate_limbs
 	name = "Regenerate Limbs"
@@ -200,17 +175,18 @@
 						H.update_body()
 				//Tails
 		if("Tail")
-			var/selected_tail = input(owner, "Select your desired tail.", "Tail Alteration") in list("None", "Cat") //lizard tails and/or horns to follow eventually
+			var/list/tail_options = list("None" = PROSTHETIC_AMPUTATED) // this feature will never ever be used
+			for(var/obj/item/bodypart/tail/option in H.dna.species.species_optional_limbs[BODY_ZONE_TAIL])
+				tail_options[initial(option.name)] = option
+			var/selected_tail = tgui_input_list(owner, "Select your desired tail.", "Tail Alteration", tail_options) //lizard tails and/or horns to follow eventually
 			if(selected_tail)
-				switch(selected_tail)
-					if("None")
-						H.dna.features["tail_human"] = "None"
-						H.dna.species.mutant_bodyparts -= "tail_human"
-						H.update_body()
-					if("Cat")
-						H.dna.species.mutant_bodyparts |= "tail_human"
-						H.dna.features["tail_human"] = "Slimecat"
-						H.update_body()
+				var/obj/item/bodypart/original_tail = H.get_bodypart(BODY_ZONE_TAIL)
+				if(original_tail)
+					original_tail.drop_limb(TRUE, FALSE)
+					qdel(original_tail)
+				if(tail_options[selected_tail] != PROSTHETIC_AMPUTATED)
+					var/obj/item/bodypart/new_tail = new tail_options[selected_tail]
+					new_tail.attach_limb(H)
 
 ////////////////////////////////////////////////////////SLIMEPEOPLE///////////////////////////////////////////////////////////////////
 

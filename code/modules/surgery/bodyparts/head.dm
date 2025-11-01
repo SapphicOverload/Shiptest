@@ -3,9 +3,11 @@
 	desc = "Didn't make sense not to live for fun, your brain gets smart but your head gets dumb."
 	icon = 'icons/mob/human_parts_greyscale.dmi'
 	icon_state = "human_head"
+	plaintext_zone = "head"
 	max_damage = 200
 	body_zone = BODY_ZONE_HEAD
 	body_part = HEAD
+	body_weight = 4
 	w_class = WEIGHT_CLASS_BULKY //Quite a hefty load
 	slowdown = 1 //Balancing measure
 	throw_range = 2 //No head bowling

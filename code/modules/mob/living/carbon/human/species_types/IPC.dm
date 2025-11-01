@@ -16,8 +16,8 @@
 	mutantlungs = null //no more collecting change for you
 	mutantappendix = null
 	mutant_organs = list(/obj/item/organ/cyberimp/arm/power_cord)
-	mutant_bodyparts = list("ipc_screen", "ipc_antenna", "ipc_chassis", "ipc_tail", "ipc_brain")
-	default_features = list("mcolor" = "#7D7D7D", "ipc_screen" = "Static", "ipc_antenna" = "None", "ipc_chassis" = "Morpheus Cyberkinetics (Custom)", "ipc_tail" = "None", "ipc_brain" = "Posibrain")
+	mutant_bodyparts = list("ipc_screen", "ipc_antenna", "ipc_chassis", "ipc_brain")
+	default_features = list("mcolor" = "#7D7D7D", "ipc_screen" = "Static", "ipc_antenna" = "None", "ipc_chassis" = "Morpheus Cyberkinetics (Custom)", "ipc_brain" = "Posibrain")
 	meat = /obj/item/stack/sheet/plasteel{amount = 5}
 	skinned_type = /obj/item/stack/sheet/metal{amount = 10}
 	exotic_bloodtype = "Coolant"
@@ -44,6 +44,14 @@
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/ipc,
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/ipc,
 	)
+
+	species_optional_limbs = list(BODY_ZONE_TAIL = list(
+		/obj/item/bodypart/tail/ipc/plug,
+		/obj/item/bodypart/tail/ipc/pgf,
+		/obj/item/bodypart/tail/ipc/pgf/large,
+		/obj/item/bodypart/tail/ipc/fox,
+		/obj/item/bodypart/tail/ipc/fox/alt,
+	))
 
 	/// The last screen used when the IPC died.
 	var/saved_screen

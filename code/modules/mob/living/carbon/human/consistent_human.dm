@@ -19,7 +19,6 @@
 	dna.features["mcolor2"] = color_from_seed(copytext(seed, 2, 10))
 	dna.features["ethcolor"] = color_from_seed(copytext(seed, 3, 11))
 
-	dna.features["tail_lizard"] = GLOB.tails_list_lizard[hex2num(copytext(seed, 2, 3)) % length(GLOB.tails_list_lizard) + 1]
 	dna.features["face_markings"] = GLOB.face_markings_list[hex2num(copytext(seed, 3, 4)) % length(GLOB.face_markings_list) + 1]
 	dna.features["horns"] = GLOB.horns_list[hex2num(copytext(seed, 4, 5)) % length(GLOB.horns_list) + 1]
 	dna.features["frills"] = GLOB.frills_list[hex2num(copytext(seed, 5, 6)) % length(GLOB.frills_list) + 1]
