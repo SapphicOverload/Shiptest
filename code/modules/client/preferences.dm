@@ -1500,6 +1500,51 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 		points_balance -= 2
 	return points_balance
 
+/datum/preferences/proc/init_custom_limbs()
+	for(var/zone in pref_species.species_limbs | pref_species.species_optional_limbs)
+		if(!(zone in pref_species.species_limbs))
+			custom_limbs[zone] = PROSTHETIC_NONE
+			continue
+		if(zone in pref_species.species_optional_limbs)
+			custom_limbs[zone] = pick(pref_species.species_optional_limbs[zone])
+			continue
+		custom_limbs[zone] = PROSTHETIC_NORMAL
+
+/// Cleans up any cases of limbs being where they shouldn't when loading prefs or changing character species. Fairly expensive, so only use it when needed.
+/datum/preferences/proc/sanitize_custom_limbs(species_change = FALSE)
+	var/list/all_zones = custom_limbs | pref_species.species_limbs | pref_species.species_optional_limbs
+	for(var/zone in all_zones)
+		var/custom_limb = custom_limbs[zone]
+		if(!(zone in pref_species.species_limbs))
+			if(!(pref_species.species_optional_limbs))
+				custom_limbs.Remove(zone)
+				continue
+			if(!(custom_limb in pref_species.species_optional_limbs[zone]))
+				custom_limbs[zone] = PROSTHETIC_NONE
+				continue
+		else if(species_change && custom_limb == PROSTHETIC_NONE)
+			custom_limbs[zone] = PROSTHETIC_NORMAL
+			continue
+		if(!(zone in pref_species.species_robotic_limbs) && custom_limb == PROSTHETIC_ROBOTIC)
+			custom_limbs[zone] = PROSTHETIC_NORMAL
+			continue
+		if(!istext(custom_limb))
+			if(custom_limb in pref_species.species_optional_limbs[zone])
+				continue
+			var/obj/item/bodypart/part = custom_limb
+			if(initial(part.bodytype) & pref_species.bodytype)
+				continue
+			var/is_ipc_part = FALSE
+			var/datum/sprite_accessory/ipc_chassis/ipc_style
+			for(var/chassis_style in GLOB.ipc_chassis_list)
+				ipc_style = GLOB.ipc_chassis_list[chassis_style]
+				if(custom_limb == ipc_style.chassis_bodyparts[zone])
+					is_ipc_part = TRUE
+					break
+			if(is_ipc_part)
+				continue
+			custom_limbs[zone] = PROSTHETIC_NORMAL
+
 /datum/preferences/Topic(href, href_list, hsrc)			//yeah, gotta do this I guess..
 	. = ..()
 	if(href_list["close"])
@@ -1543,6 +1588,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 				var/sid = href_list["newspecies"]
 				var/newtype = GLOB.species_list[sid]
 				pref_species = new newtype()
+				sanitize_custom_limbs(TRUE)
 				//Now that we changed our species, we must verify that the mutant colour is still allowed.
 				var/temp_hsv = RGBtoHSV(features["mcolor"])
 				if(text2num(features["mcolor"], 16) == 0  || (!(MUTCOLORS_PARTSONLY in pref_species.species_traits) && ReadHSV(temp_hsv)[3] < ReadHSV("#191919")[3]))
@@ -2162,7 +2208,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 						if(pref_species.species_robotic_limbs[limb])
 							limb_options["Robotic"] = PROSTHETIC_ROBOTIC
 						if(limb != BODY_ZONE_CHEST && limb != BODY_ZONE_HEAD)
-							limb_options["None"] = PROSTHETIC_AMPUTATED // starting without a head or chest causes instant death, must be disallowed
+							limb_options["None"] = PROSTHETIC_NONE // starting without a head or chest causes instant death, must be disallowed
 						if(limb in pref_species.species_optional_limbs) // special bodypart options! mainly used for tails
 							for(var/obj/item/bodypart/limb_type as anything in pref_species.species_optional_limbs[limb])
 								limb_options[initial(limb_type.name)] = limb_type
@@ -2551,12 +2597,12 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 					old_part.drop_limb(TRUE)
 					qdel(old_part)
 				character.regenerate_limb(pros_limb, robotic = fbp)
-			if(PROSTHETIC_AMPUTATED)
+			if(PROSTHETIC_NONE)
 				if(old_part)
 					old_part.drop_limb(TRUE)
 					qdel(old_part)
 				if(pros_limb == BODY_ZONE_CHEST || pros_limb == BODY_ZONE_HEAD)
-					stack_trace("[parent] somehow had their [parse_zone(pros_limb)] set to [PROSTHETIC_AMPUTATED]!")
+					stack_trace("[parent] somehow had their [parse_zone(pros_limb)] set to [PROSTHETIC_NONE]!")
 					custom_limbs[pros_limb] = PROSTHETIC_NORMAL
 					character.regenerate_limb(pros_limb, robotic = fbp)
 			if(PROSTHETIC_ROBOTIC)
@@ -2566,11 +2612,8 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 				character.regenerate_limb(pros_limb, robotic = TRUE)
 			else
 				var/obj/item/bodypart/new_part = custom_limbs[pros_limb]
-				if(istext(new_part))
-					var/datum/sprite_accessory/ipc_chassis/limb_style = GLOB.ipc_chassis_list[new_part]
-					new_part = limb_style.chassis_bodyparts[pros_limb]
-				//else if(!character_setup)
-					//character.dna.species.species_limbs[pros_limb] = new_part
+				if(!character_setup && !(new_part.bodytype & BODYTYPE_ROBOTIC)) // this preserves non-prosthetics through anything that regenerates the whole bodypart
+					character.dna.species.species_limbs[pros_limb] = new_part
 				new_part = new new_part()
 				if(old_part)
 					old_part.drop_limb(TRUE)

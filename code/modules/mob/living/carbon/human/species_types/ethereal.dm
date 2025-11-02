@@ -47,6 +47,7 @@
 	)
 
 	species_optional_limbs = list(BODY_ZONE_TAIL = list(
+		/obj/item/bodypart/tail/elzu,
 		/obj/item/bodypart/tail/elzu/bifurcated,
 		/obj/item/bodypart/tail/elzu/stubby,
 	))

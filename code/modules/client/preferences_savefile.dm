@@ -116,15 +116,53 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	if(current_version < 43)
 		var/list/prosthetic_limbs = list()
 		READ_FILE(S["prosthetic_limbs"], prosthetic_limbs)
-		var/static/list/basic_options = list(PROSTHETIC_NORMAL, PROSTHETIC_AMPUTATED, PROSTHETIC_ROBOTIC)
+		var/static/list/basic_options = list(PROSTHETIC_NORMAL, PROSTHETIC_NONE, PROSTHETIC_ROBOTIC)
 		for(var/zone in custom_limbs)
 			var/old_limb = prosthetic_limbs[zone]
 			if(!old_limb)
 				continue
-			if(old_limb in GLOB.ipc_chassis_list)
+			if(old_limb == "amputated")
+				old_limb = PROSTHETIC_NONE
+			if(istext(old_limb) && !(old_limb in basic_options))
 				var/datum/sprite_accessory/ipc_chassis/chassis_of_choice = GLOB.ipc_chassis_list[old_limb]
 				old_limb = chassis_of_choice.chassis_bodyparts[zone]
 			custom_limbs[zone] = old_limb
+		var/static/list/legacy_features_to_bodypart = list(
+			"Smooth (Two color)" = PROSTHETIC_NORMAL,
+			"Smooth (One color)" = /obj/item/bodypart/tail/lizard/one_color,
+			"Small" = /obj/item/bodypart/tail/lizard/small,
+			"Large" = /obj/item/bodypart/tail/lizard/large,
+			"Prosthetic" = PROSTHETIC_ROBOTIC,
+			"Cat" = /obj/item/bodypart/tail/human/cat,
+			"Slimecat" = /obj/item/bodypart/tail/human/cat/slime,
+			"Dog" = /obj/item/bodypart/tail/human/dog,
+			"Fox" = /obj/item/bodypart/tail/human/fox,
+			"Fox 2" = /obj/item/bodypart/tail/human/fox/alt,
+			"Horse" = /obj/item/bodypart/tail/human/horse,
+			"Rabbit" = /obj/item/bodypart/tail/human/rabbit,
+			"Synthetic Sarathi" = /obj/item/bodypart/tail/ipc/pgf,
+			"Synthetic Sarathi Large" = /obj/item/bodypart/tail/ipc/pgf/large,
+			"Power Plug" = /obj/item/bodypart/tail/ipc/plug,
+			"Pawsitrons Cat" = /obj/item/bodypart/tail/ipc/cat,
+			"Pawsitrons Fox" = /obj/item/bodypart/tail/ipc/fox,
+			"Pawsitrons Fox 2" = /obj/item/bodypart/tail/ipc/fox/alt,
+			"Long" = PROSTHETIC_NORMAL,
+			"Bifurcated" = /obj/item/bodypart/tail/elzu/bifurcated,
+			"Stubby" = /obj/item/bodypart/tail/elzu/stubby,
+			"None" = PROSTHETIC_NONE,
+		) // hell
+		var/legacy_feature
+		switch(pref_species.id)
+			if(SPECIES_SARATHI)
+				READ_FILE(S["feature_lizard_tail"], legacy_feature)
+			if(SPECIES_HUMAN)
+				READ_FILE(S["feature_human_tail"], legacy_feature)
+			if(SPECIES_IPC)
+				READ_FILE(S["feature_ipc_tail"], legacy_feature)
+			if(SPECIES_ELZUOSE)
+				READ_FILE(S["feature_tail_elzu"], legacy_feature)
+		if(legacy_feature)
+			custom_limbs[BODY_ZONE_TAIL] = legacy_features_to_bodypart[legacy_feature]
 
 /// checks through keybindings for outdated unbound keys and updates them
 /datum/preferences/proc/check_keybindings()
@@ -450,10 +488,10 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	READ_FILE(S["randomise"],  randomise)
 	READ_FILE(S["height_filter"], height_filter)
 	READ_FILE(S["custom_limbs"], custom_limbs)
-	custom_limbs ||= list(BODY_ZONE_HEAD = PROSTHETIC_NORMAL, BODY_ZONE_CHEST = PROSTHETIC_NORMAL, BODY_ZONE_L_ARM = PROSTHETIC_NORMAL, BODY_ZONE_R_ARM = PROSTHETIC_NORMAL, BODY_ZONE_L_LEG = PROSTHETIC_NORMAL, BODY_ZONE_R_LEG = PROSTHETIC_NORMAL)
-	for(var/zone in list(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_TAIL))
-		if(!custom_limbs[zone])
-			custom_limbs[zone] = PROSTHETIC_NORMAL // necessary to prevent old savefiles from breaking the interface
+	if(!custom_limbs)
+		init_custom_limbs()
+	else
+		sanitize_custom_limbs(FALSE)
 	READ_FILE(S["learned_languages"], learned_languages)
 	if(!learned_languages?.len) init_learned_languages()
 	READ_FILE(S["native_language"], native_language)

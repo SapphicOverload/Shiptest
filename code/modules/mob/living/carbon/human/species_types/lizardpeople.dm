@@ -1,3 +1,5 @@
+#define TAIL_REGROWTH_TIME (45 MINUTES)
+
 /datum/species/lizard
 	// Reptilian humanoids with scaled skin and tails.
 	name = "\improper Sarathi"
@@ -43,7 +45,7 @@
 		BODY_ZONE_R_ARM = /obj/item/bodypart/r_arm/robot/surplus/lizard,
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/robot/surplus/lizard/digitigrade,
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/robot/surplus/lizard/digitigrade,
-		BODY_ZONE_TAIL = /obj/item/bodypart/tail/lizard,
+		BODY_ZONE_TAIL = /obj/item/bodypart/tail/lizard/synth,
 	)
 
 	species_optional_limbs = list(BODY_ZONE_TAIL = list(
@@ -66,6 +68,9 @@
 	ass_image = 'icons/ass/asslizard.png'
 	var/datum/action/innate/liz_lighter/internal_lighter
 
+	/// The timer for regrowing a new tail
+	var/tail_regrowth_timer
+
 /datum/species/lizard/on_species_loss(mob/living/carbon/C)
 	if(internal_lighter)
 		internal_lighter.Remove(C)
@@ -76,6 +81,8 @@
 	if(ishuman(C))
 		internal_lighter = new
 		internal_lighter.Grant(C)
+	RegisterSignal(C, COMSIG_CARBON_ATTACH_LIMB, PROC_REF(on_limb_add))
+	RegisterSignal(C, COMSIG_CARBON_REMOVE_LIMB, PROC_REF(on_limb_lost))
 
 /datum/species/lizard/handle_chemicals(datum/reagent/chem, mob/living/carbon/human/H)
 	if(chem.type == /datum/reagent/fuel)
@@ -123,6 +130,27 @@
 
 	return randname
 
+/datum/species/lizard/proc/on_limb_add(mob/living/carbon/source, obj/item/bodypart/new_limb)
+	SIGNAL_HANDLER
+
+	if(tail_regrowth_timer && new_limb.body_zone == BODY_ZONE_TAIL)
+		deltimer(tail_regrowth_timer)
+
+/datum/species/lizard/proc/on_limb_lost(mob/living/carbon/source, obj/item/bodypart/lost_limb, dismembered)
+	SIGNAL_HANDLER
+
+	if(lost_limb.body_zone == BODY_ZONE_TAIL)
+		tail_regrowth_timer = addtimer(CALLBACK(src, PROC_REF(regrow_tail), source), TAIL_REGROWTH_TIME, TIMER_UNIQUE | TIMER_OVERRIDE | TIMER_STOPPABLE | TIMER_DELETE_ME)
+
+/datum/species/lizard/proc/regrow_tail(mob/living/carbon/lizard)
+	if(lizard.get_bodypart(BODY_ZONE_TAIL))
+		return
+	var/obj/item/bodypart/tail/lizard/small/new_tail = new()
+	new_tail.species_color = lizard.dna.features["mcolor"]
+	new_tail.species_secondary_color = lizard.dna.features["mcolor2"]
+	new_tail.attach_limb(lizard)
+	lizard.visible_message(span_notice("[lizard]'s tail starts to regrow!"), span_notice("Your tail starts to regrow!"))
+
 /*
 Lizard subspecies: ASHWALKERS
 */
@@ -148,3 +176,5 @@ Lizard subspecies: ASHWALKERS
 	. = ..() //call everything from species/on_species_gain()
 	C.dna.add_mutation(DWARFISM)
 //WS Edit End - Kobold
+
+#undef TAIL_REGROWTH_TIME

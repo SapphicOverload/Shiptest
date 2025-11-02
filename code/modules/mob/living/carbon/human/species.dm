@@ -240,7 +240,7 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 	)
 
 	/// Optional limbs that this species may or may not have, depending on preferences.
-	var/list/obj/item/bodypart/species_optional_limbs = list()
+	var/list/list/species_optional_limbs = list()
 
 	var/obj/item/organ/heart/robotic_heart = /obj/item/organ/heart/cybernetic
 	var/obj/item/organ/lungs/robotic_lungs = /obj/item/organ/lungs/cybernetic
@@ -407,7 +407,7 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		old_part = C.bodyparts[zone]
 		if(!old_part && (zone in old_species?.species_limbs)) // if the old species has a bodypart by default but it's missing, don't replace it
 			continue
-		var/obj/item/bodypart/new_part = C.new_body_part(zone, robotic, FALSE, new_species)
+		var/obj/item/bodypart/new_part = new_species.new_body_part(C, zone, robotic, FALSE)
 		if(new_part)
 			new_part.replace_limb(C, TRUE)
 			if(old_part)
@@ -418,6 +418,9 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		else if(old_part)
 			old_part.drop_limb(TRUE)
 			qdel(old_part)
+
+/datum/species/proc/new_body_part(mob/living/carbon/carbon_mob, zone, robotic, fixed_icon)
+	return carbon_mob.new_body_part(zone, robotic, fixed_icon, src)
 
 /**
 	* Proc called when a carbon becomes this species.

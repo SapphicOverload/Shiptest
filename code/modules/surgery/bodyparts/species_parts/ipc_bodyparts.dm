@@ -619,8 +619,8 @@
 	overlay_icon_state = TRUE
 
 /obj/item/bodypart/tail/ipc/pgf
-	name = "\improper PGF Mechanics prosthetic tail"
-	examine_id = "\improper PGF Mechanics prosthetic"
+	name = "\improper PGF Mechanics robotic tail"
+	examine_id = "\improper PGF Mechanics robotic"
 	icon_state = "synth_tail"
 	limb_id = "synth"
 	max_damage = 30
@@ -633,15 +633,15 @@
 	can_thump = TRUE
 
 /obj/item/bodypart/tail/ipc/pgf/large
-	name = "\improper PGF Mechanics large prosthetic tail"
-	examine_id = "\improper PGF Mechanics large prosthetic"
+	name = "\improper PGF Mechanics large robotic tail"
+	examine_id = "\improper PGF Mechanics large robotic"
 	icon_state = "large_synth_tail"
 	limb_id = "large_synth"
 	max_damage = 50
 	max_stamina_damage = 50
 	body_damage_coeff = 0.75
 	body_weight = 16
-	can_wag = TRUE
+	can_wag = TRUE // only one with a sprite for it
 
 // PGF MECHANICS TYPE-D
 

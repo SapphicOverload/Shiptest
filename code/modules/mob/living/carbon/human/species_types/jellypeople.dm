@@ -175,7 +175,7 @@
 						H.update_body()
 				//Tails
 		if("Tail")
-			var/list/tail_options = list("None" = PROSTHETIC_AMPUTATED) // this feature will never ever be used
+			var/list/tail_options = list("None" = PROSTHETIC_NONE) // this feature will never ever be used
 			for(var/obj/item/bodypart/tail/option in H.dna.species.species_optional_limbs[BODY_ZONE_TAIL])
 				tail_options[initial(option.name)] = option
 			var/selected_tail = tgui_input_list(owner, "Select your desired tail.", "Tail Alteration", tail_options) //lizard tails and/or horns to follow eventually
@@ -184,7 +184,7 @@
 				if(original_tail)
 					original_tail.drop_limb(TRUE, FALSE)
 					qdel(original_tail)
-				if(tail_options[selected_tail] != PROSTHETIC_AMPUTATED)
+				if(tail_options[selected_tail] != PROSTHETIC_NONE)
 					var/obj/item/bodypart/new_tail = new tail_options[selected_tail]
 					new_tail.attach_limb(H)
 

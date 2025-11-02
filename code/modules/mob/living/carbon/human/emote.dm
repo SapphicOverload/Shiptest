@@ -103,11 +103,16 @@
 	emote_type = EMOTE_AUDIBLE
 	vary = TRUE
 
+/datum/emote/living/carbon/human/tailthump/can_run_emote(mob/living/user, status_check, intentional)
+	if(!user.get_bodypart(BODY_ZONE_TAIL))
+		return FALSE
+	return ..()
+
 /datum/emote/living/carbon/human/tailthump/get_sound(mob/living/user)
 	if(!ishuman(user))
 		return
 	var/obj/item/bodypart/tail/user_tail = user.get_bodypart(BODY_ZONE_TAIL)
-	if(user_tail?.can_thump || (isvox(user)))
+	if(user_tail?.can_thump)
 		return 'sound/voice/lizard/tailthump.ogg' //https://freesound.org/people/TylerAM/sounds/389665/
 
 /datum/emote/living/carbon/human/stomp

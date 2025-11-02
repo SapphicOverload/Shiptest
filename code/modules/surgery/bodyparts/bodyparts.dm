@@ -31,8 +31,6 @@
 	var/draw_color
 	/// The layer this bodypart should draw on
 	var/bodypart_layer = BODYPARTS_LAYER
-	///Should it automatically rename itself based on limb_id and body_zone?
-	var/dynamic_rename = TRUE
 	///Used in place of the actual limb ID on examine and renaming.
 	var/examine_id
 
@@ -147,11 +145,19 @@
 	var/datum/bodypart_aid/splint/current_splint
 	/// If something is currently grasping this bodypart and trying to staunch bleeding (see [/obj/item/grasp_self])
 	var/obj/item/self_grasp/grasped_by
+	/// Any special actions granted by having this bodypart
+	var/list/datum/action/bodypart_actions
 
 //band-aid for blood overlays & other external overlays until they get refactored
 	var/stored_icon_state
 
 /obj/item/bodypart/Initialize()
+	if(bodypart_actions)
+		var/list/action_types = bodypart_actions.Copy()
+		QDEL_NULL(bodypart_actions) // not sure i have to do this but might as well
+		bodypart_actions = list()
+		for(var/action_type in action_types)
+			bodypart_actions += new action_type()
 	. = ..()
 	name = "[examine_id || limb_id] [plaintext_zone]"
 	update_icon_dropped()
