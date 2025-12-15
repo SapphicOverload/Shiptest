@@ -58,7 +58,7 @@
 	icon_state = "machete"
 	base_icon_state = "machete"
 	supports_variations = VOX_VARIATION
-	force = 20
+	force = 23
 	throwforce = 15
 	max_integrity = 300
 	integrity_failure = 0.50
@@ -67,8 +67,7 @@
 
 /obj/item/melee/sword/mass/ComponentInitialize()
 	. = ..()
-	AddComponent(/datum/component/two_handed, force_unwielded = 20, force_wielded = 22, icon_wielded = "[base_icon_state]_w")
-	RegisterSignal()
+	AddComponent(/datum/component/two_handed, force_unwielded = 23, force_wielded = 25, icon_wielded = "[base_icon_state]_w")
 
 /obj/item/melee/sword/mass/welder_act(mob/living/user, obj/item/I)
 	. = ..()
