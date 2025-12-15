@@ -52,6 +52,13 @@
 
 #define COMSIG_ITEM_USE_CELL "item_use_cell"
 
+/// from base of datum/component/blocking/try_to_block(): (mob/living/defender, atom/movable/incoming, damage, attack_type)
+#define COMSIG_ITEM_PRE_BLOCK "item_pre_block"
+	///Prevents blocking with an item
+	#define COMPONENT_CANCEL_BLOCK (1<<0)
+/// from base of datum/component/blocking/on_block(): (mob/living/defender, atom/movable/incoming, damage, attack_type)
+#define COMSIG_ITEM_POST_BLOCK "item_post_block"
+
 #define COMSIG_TOOL_IN_USE "tool_in_use" ///from base of [/obj/item/proc/tool_check_callback]: (mob/living/user)
 #define COMSIG_TOOL_START_USE "tool_start_use" ///from base of [/obj/item/proc/tool_start_check]: (mob/living/user)
 #define COMSIG_ITEM_DISABLE_EMBED "item_disable_embed" ///from [/obj/item/proc/disableEmbedding]:

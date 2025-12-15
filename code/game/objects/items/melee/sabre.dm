@@ -6,7 +6,7 @@
 	item_state = "sabre"
 	force = 25
 	throwforce = 10
-	block_chance = 30
+	block_force = 20
 	armour_penetration = 75
 	wound_bonus = 10
 	bare_wound_bonus = 25
@@ -47,7 +47,7 @@
 	name = "\improper boarding cutlass"
 	desc = "When beam and bullet puncture the hull, a trustworthy blade will carry you through the fight"
 	icon_state = "pgf-sabre"
-	block_chance = 15
+	block_force = 10
 	force = 28
 	demolition_mod = 1.25
 	attack_cooldown = 6
@@ -60,7 +60,7 @@
 	item_state = "suns-tsword"
 	force = 0
 	throwforce = 0
-	block_chance = 0
+	block_force = 0
 
 	slot_flags = ITEM_SLOT_BELT
 	w_class = WEIGHT_CLASS_SMALL
@@ -84,9 +84,5 @@
 /obj/item/melee/sword/sabre/suns/telescopic/proc/on_transform(obj/item/source, mob/user, active)
 	SIGNAL_HANDLER
 
-	if(active)
-		block_chance = on_block_chance
-	else
-		block_chance = initial(block_chance)
 	playsound(user, extend_sound, 50, TRUE)
 	return COMPONENT_NO_DEFAULT_MESSAGE

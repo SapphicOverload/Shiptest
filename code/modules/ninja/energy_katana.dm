@@ -5,7 +5,6 @@
 	item_state = "energy_katana"
 	force = 40
 	throwforce = 20
-	block_chance = 50
 	armour_penetration = 50
 	max_integrity = 200
 	resistance_flags = LAVA_PROOF | FIRE_PROOF | ACID_PROOF
@@ -19,6 +18,7 @@
 	spark_system = new /datum/effect_system/spark_spread()
 	spark_system.set_up(5, 0, src)
 	spark_system.attach(src)
+	AddComponent(/datum/component/blocking, block_force = 15, block_flags = WEAPON_BLOCK_FLAGS|PROJECTILE_ATTACK|REFLECTIVE_BLOCK)
 
 /obj/item/melee/sword/energy_katana/attack_self(mob/user)
 	dash_toggled = !dash_toggled

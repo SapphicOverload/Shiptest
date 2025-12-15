@@ -186,10 +186,6 @@ GLOBAL_VAR_INIT(embedpocalypse, FALSE) // if true, all items will be able to emb
 	/// how much damage does this item do when tearing down walls during deconstruction steps?
 	var/wall_decon_damage = 0
 
-	var/block_chance = 0
-	var/block_cooldown_time = 1 SECONDS
-	COOLDOWN_DECLARE(block_cooldown)
-	var/hit_reaction_chance = 0 //If you want to have something unrelated to blocking/armour piercing etc. Maybe not needed, but trying to think ahead/allow more freedom
 	///In tiles, how far this weapon can reach; 1 for adjacent, which is default
 	var/reach = 1
 
@@ -555,22 +551,6 @@ GLOBAL_VAR_INIT(embedpocalypse, FALSE) // if true, all items will be able to emb
 
 // afterattack() and attack() prototypes moved to _onclick/item_attack.dm for consistency
 
-/obj/item/proc/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	//Mostly shields
-	if((prob(final_block_chance) && COOLDOWN_FINISHED(src, block_cooldown)) || (prob(final_block_chance) && istype(src, /obj/item/shield)))
-		owner.visible_message(span_danger("[owner] blocks [attack_text] with [src]!"))
-		playsound(src, 'sound/weapons/effects/deflect.ogg', 100)
-		if(!istype(src, /obj/item/shield))
-			COOLDOWN_START(src, block_cooldown, block_cooldown_time)
-		return TRUE
-
-	var/signal_result = (SEND_SIGNAL(src, COMSIG_ITEM_HIT_REACT, owner, hitby, damage, attack_type)) + prob(final_block_chance)
-	if(!signal_result)
-		return FALSE
-	if(hit_reaction_chance >= 0)
-		owner.visible_message(span_danger("[owner] blocks [attack_text] with [src]!"))
-	return signal_result
-
 /obj/item/proc/talk_into(mob/M, input, channel, spans, datum/language/language, list/message_mods)
 	return ITALICS | REDUCE_RANGE
 
@@ -691,10 +671,6 @@ GLOBAL_VAR_INIT(embedpocalypse, FALSE) // if true, all items will be able to emb
  */
 /obj/item/proc/ui_action_click(mob/user, actiontype)
 	attack_self(user)
-
-///This proc determines if and at what an object will reflect energy projectiles if it's in l_hand,r_hand or wear_suit
-/obj/item/proc/IsReflect(def_zone)
-	return FALSE
 
 /obj/item/proc/eyestab(mob/living/carbon/M, mob/living/carbon/user)
 

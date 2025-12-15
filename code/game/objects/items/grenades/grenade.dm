@@ -138,27 +138,6 @@
 /obj/item/grenade/attack_paw(mob/user)
 	return attack_hand(user)
 
-/obj/item/grenade/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	var/obj/projectile/P = hitby
-	var/list/valid_hands = list(FALSE, FALSE)
-
-	//checks if the projectile hits an arm holding a grenade
-	if (istype(owner.held_items[1], (/obj/item/grenade)))
-		if (P.def_zone == "l_arm")
-			valid_hands[1] = TRUE
-
-	if (istype(owner.held_items[2], (/obj/item/grenade)))
-		if (P.def_zone == "r_arm")
-			valid_hands[2] = TRUE
-
-	if(damage && attack_type == PROJECTILE_ATTACK && P.damage_type != STAMINA && (valid_hands[1] || valid_hands[2]) && prob(5)) //5% chance to go off
-		owner.visible_message(span_danger("[attack_text] hits [owner]'s [src], setting it off! What a shot!"))
-		var/turf/T = get_turf(src)
-		log_game("A projectile ([hitby]) detonated a grenade held by [key_name(owner)] at [COORD(T)]")
-		message_admins("A projectile ([hitby]) detonated a grenade held by [key_name_admin(owner)] at [ADMIN_COORDJMP(T)]")
-		prime()
-		return TRUE //It hit the grenade, not them
-
 /obj/item/grenade/afterattack(atom/target, mob/user)
 	. = ..()
 	if(active)

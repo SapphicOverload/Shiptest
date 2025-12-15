@@ -439,6 +439,10 @@
 	var/impact_direct_damage = 0
 	var/list/pierced = list()
 
+/obj/projectile/beam/beam_rifle/Initialize()
+	. = ..()
+	ADD_TRAIT(src, TRAIT_SHIELDBUSTER, INNATE_TRAIT)
+
 /obj/projectile/beam/beam_rifle/proc/AOE(turf/epicenter)
 	if(!epicenter)
 		return

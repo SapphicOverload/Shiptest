@@ -260,7 +260,7 @@
 /obj/item/melee/baton/proc/shields_blocked(mob/living/L, mob/user)
 	if(ishuman(L))
 		var/mob/living/carbon/human/H = L
-		if(H.check_shields(src, 0, "[user]'s [name]", MELEE_ATTACK)) //No message; check_shields() handles that
+		if(H.check_shields(src, stamina_loss_amt, "[user]'s [name]", MELEE_ATTACK, damage_type = STAMINA)) //No message; check_shields() handles that
 			playsound(H, 'sound/weapons/genhit.ogg', 50, TRUE)
 			return TRUE
 	return FALSE
@@ -455,7 +455,7 @@
 		if(cooldown_check <= world.time)
 			if(ishuman(target))
 				var/mob/living/carbon/human/H = target
-				if (H.check_shields(src, 0, "[user]'s [name]", MELEE_ATTACK))
+				if (H.check_shields(src, stamina_damage, "[user]'s [name]", MELEE_ATTACK, damage_type = STAMINA))
 					return
 				if(check_martial_counter(H, user))
 					return

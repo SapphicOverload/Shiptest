@@ -660,17 +660,21 @@
 	var/shield_on = "shieldsparkles"
 	var/damage_to_take_on_hit = 40 //every time the owner is hit, how much damage to give to the amulet?
 
+/obj/item/clothing/neck/crystal_amulet/Initialize()
+	. = ..()
+	AddComponent(/datum/component/shielded, \
+			max_charges = INFINITY, \
+			recharge_delay = 0, \
+			charge_recovery = 0, \
+			shield_icon_file = 'icons/effects/effects.dmi', \
+			shield_icon = "shieldsparkles", \
+			run_hit_callback = CALLBACK(src, PROC_REF(shield_damaged)))
 
-//This is copied and pasted from the shield harsuit code, any issues here are also a issue there. Should I have done this? No, i shouldn't. Should this be a component? Yes, most likely. Do i want to touch DCS ever again? No.
-
-/obj/item/clothing/neck/crystal_amulet/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	var/datum/effect_system/spark_spread/quantum/spark_creator = new
-	spark_creator.set_up(2, 1, src)
-	spark_creator.start()
+/obj/item/clothing/neck/crystal_amulet/proc/shield_damaged(mob/living/owner, attack_text, current_charges)
+	do_sparks(2, TRUE, owner)
 	owner.visible_message(span_danger("[owner]'s shields deflect [attack_text] in a shower of sparks!"))
 	take_damage(damage_to_take_on_hit)
 	playsound(src, 'sound/effects/hit_on_shattered_glass.ogg', 70, TRUE)
-	return TRUE
 
 /obj/item/clothing/neck/crystal_amulet/examine(mob/user)
 	. = ..()
@@ -682,11 +686,6 @@
 			. += "It appears heavily damaged."
 		if(0 to 25)
 			. += span_warning("It's falling apart!")
-
-/obj/item/clothing/neck/crystal_amulet/worn_overlays(isinhands)
-	. = ..()
-	if(!isinhands)
-		. += mutable_appearance('icons/effects/effects.dmi', shield_state, MOB_LAYER + 0.01)
 
 /obj/item/clothing/neck/crystal_amulet/atom_destruction(damage_flag)
 	visible_message(span_danger("[src] shatters into a million pieces!"))

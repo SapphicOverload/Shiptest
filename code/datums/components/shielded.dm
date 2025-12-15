@@ -21,6 +21,8 @@
 	var/shield_icon = "shield-old"
 	/// Do we still shield if we're being held in-hand? If FALSE, it needs to be equipped to a slot to work
 	var/shield_inhand = FALSE
+	/// How should this shield react to incoming projectiles?
+	var/block_flag = SHIELD_BLOCK
 	/// Should the shield lose charges equal to the damage dealt by a hit?
 	var/lose_multiple_charges = FALSE
 	/// The cooldown tracking when we were last hit
@@ -30,7 +32,19 @@
 	/// A callback for the sparks/message that play when a charge is used, see [/datum/component/shielded/proc/default_run_hit_callback]
 	var/datum/callback/on_hit_effects
 
-/datum/component/shielded/Initialize(max_charges = 3, recharge_start_delay = 20 SECONDS, charge_increment_delay = 1 SECONDS, charge_recovery = 1, lose_multiple_charges = FALSE, starting_charges = null, shield_icon_file = 'icons/effects/effects.dmi', shield_icon = "shield-old", shield_inhand = FALSE, run_hit_callback)
+/datum/component/shielded/Initialize(
+	max_charges = 3,
+	recharge_start_delay = 20 SECONDS,
+	charge_increment_delay = 1 SECONDS,
+	charge_recovery = 1,
+	lose_multiple_charges = FALSE,
+	starting_charges = null,
+	shield_icon_file = 'icons/effects/effects.dmi',
+	shield_icon = "shield-old",
+	shield_inhand = FALSE,
+	run_hit_callback,
+	block_flag = SHIELD_BLOCK,
+)
 	if(!isitem(parent) || max_charges <= 0)
 		return COMPONENT_INCOMPATIBLE
 
@@ -43,6 +57,7 @@
 	src.shield_icon = shield_icon
 	src.shield_inhand = shield_inhand
 	src.on_hit_effects = run_hit_callback || CALLBACK(src, PROC_REF(default_run_hit_callback))
+	src.block_flag = block_flag
 	if(isnull(starting_charges))
 		current_charges = max_charges
 	else
@@ -62,7 +77,6 @@
 /datum/component/shielded/RegisterWithParent()
 	RegisterSignal(parent, COMSIG_ITEM_EQUIPPED, PROC_REF(on_equipped))
 	RegisterSignal(parent, COMSIG_ITEM_DROPPED, PROC_REF(lost_wearer))
-	RegisterSignal(parent, COMSIG_ITEM_HIT_REACT, PROC_REF(on_hit_react))
 	RegisterSignal(parent, COMSIG_PARENT_ATTACKBY, PROC_REF(check_recharge_rune))
 	var/atom/shield = parent
 	if(ismob(shield.loc))
@@ -72,7 +86,7 @@
 		set_wearer(holder)
 
 /datum/component/shielded/UnregisterFromParent()
-	UnregisterSignal(parent, list(COMSIG_ITEM_EQUIPPED, COMSIG_ITEM_DROPPED, COMSIG_ITEM_HIT_REACT, COMSIG_PARENT_ATTACKBY))
+	UnregisterSignal(parent, list(COMSIG_ITEM_EQUIPPED, COMSIG_ITEM_DROPPED, COMSIG_PARENT_ATTACKBY))
 	var/atom/shield = parent
 	if(shield.loc == wearer)
 		lost_wearer(src, wearer)
@@ -107,21 +121,24 @@
 	if(slot == ITEM_SLOT_HANDS && !shield_inhand)
 		lost_wearer(source, user)
 		return
-	set_wearer(source, user)
+	set_wearer(user)
 
 /// Either we've been dropped or our wearer has been QDEL'd. Either way, they're no longer our problem
 /datum/component/shielded/proc/lost_wearer(datum/source, mob/user)
 	SIGNAL_HANDLER
 
 	if(wearer)
-		UnregisterSignal(wearer, list(COMSIG_ATOM_UPDATE_OVERLAYS, COMSIG_PARENT_QDELETING))
+		UnregisterSignal(wearer, list(COMSIG_ATOM_UPDATE_OVERLAYS, COMSIG_PARENT_QDELETING, COMSIG_HUMAN_CHECK_SHIELDS))
 		wearer.update_appearance(UPDATE_ICON)
 		wearer = null
 
 /datum/component/shielded/proc/set_wearer(mob/user)
+	if(wearer)
+		lost_wearer()
 	wearer = user
 	RegisterSignal(wearer, COMSIG_ATOM_UPDATE_OVERLAYS, PROC_REF(on_update_overlays))
 	RegisterSignal(wearer, COMSIG_PARENT_QDELETING, PROC_REF(lost_wearer))
+	RegisterSignal(wearer, COMSIG_HUMAN_CHECK_SHIELDS, PROC_REF(on_shield_check))
 	if(current_charges)
 		wearer.update_appearance(UPDATE_ICON)
 
@@ -135,14 +152,14 @@
  * This proc fires when we're hit, and is responsible for checking if we're charged, then deducting one + returning that we're blocking if so.
  * It then runs the callback in [/datum/component/shielded/var/on_hit_effects] which handles the messages/sparks (so the visuals)
  */
-/datum/component/shielded/proc/on_hit_react(datum/source, mob/living/carbon/human/owner, atom/movable/hitby, attack_text, final_block_chance, damage, attack_type)
+/datum/component/shielded/proc/on_shield_check(datum/source, atom/movable/hitby, damage, attack_text, attack_type, armour_penetration, damage_type)
 	SIGNAL_HANDLER
 
 	COOLDOWN_START(src, recently_hit_cd, recharge_start_delay)
 
 	if(current_charges <= 0)
 		return
-	. = COMPONENT_HIT_REACTION_BLOCK
+	. = block_flag
 
 	var/charge_loss = 1 // how many charges do we lose
 
@@ -151,11 +168,9 @@
 
 	adjust_charge(-charge_loss)
 
-	INVOKE_ASYNC(src, PROC_REF(actually_run_hit_callback), owner, attack_text, current_charges)
+	INVOKE_ASYNC(src, PROC_REF(actually_run_hit_callback), wearer, attack_text, current_charges)
 
 	if(!recharge_start_delay) // if recharge_start_delay is 0, we don't recharge
-		if(!current_charges) // obviously if someone ever adds a manual way to replenish charges, change this
-			qdel(src)
 		return
 
 	START_PROCESSING(SSdcs, src) // if we DO recharge, start processing so we can do that
@@ -167,9 +182,9 @@
 /// Default on_hit proc, since cult robes are stupid and have different descriptions/sparks
 /datum/component/shielded/proc/default_run_hit_callback(mob/living/owner, attack_text, current_charges)
 	do_sparks(2, TRUE, owner)
-	owner.visible_message(span_danger("Щит [owner] отражает [attack_text]!"))
+	owner.visible_message(span_danger("[owner]'s shields deflect [attack_text] in a shower of sparks!"))
 	if(current_charges <= 0)
-		owner.visible_message(span_warning("Щит [owner] перегружается!"))
+		owner.visible_message(span_warning("[owner]'s shield overloads!"))
 
 /datum/component/shielded/proc/check_recharge_rune(datum/source, obj/item/wizard_armour_charge/recharge_rune, mob/living/user)
 	/*SIGNAL_HANDLER

@@ -36,8 +36,23 @@
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 100)
 	actions_types = list(/datum/action/item_action/toggle)
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | ACID_PROOF
-	hit_reaction_chance = 50
 	pocket_storage_component_path = FALSE //WS Edit - Exowear Pockets
+	var/hit_reaction_chance = 50
+
+/obj/item/clothing/suit/armor/reactive/equipped(mob/user, slot)
+	. = ..()
+	if(slot_flags & slot)
+		RegisterSignal(user, COMSIG_HUMAN_CHECK_SHIELDS, PROC_REF(hit_reaction))
+	else
+		UnregisterSignal(user, COMSIG_HUMAN_CHECK_SHIELDS)
+
+/obj/item/clothing/suit/armor/reactive/dropped(mob/user)
+	if(user.get_item_by_slot(ITEM_SLOT_OCLOTHING) == src)
+		UnregisterSignal(user, COMSIG_HUMAN_CHECK_SHIELDS)
+	return ..()
+
+/obj/item/clothing/suit/armor/reactive/proc/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, damage, attack_text, attack_type)
+	return NONE
 
 /obj/item/clothing/suit/armor/reactive/attack_self(mob/user)
 	active = !(active)
@@ -71,7 +86,7 @@
 
 /obj/item/clothing/suit/armor/reactive/teleport/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
-		return 0
+		return NONE
 	if(prob(hit_reaction_chance))
 		var/mob/living/carbon/human/H = owner
 		if(world.time < reactivearmor_cooldown)
@@ -107,7 +122,7 @@
 
 /obj/item/clothing/suit/armor/reactive/fire/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
-		return 0
+		return NONE
 	if(prob(hit_reaction_chance))
 		if(world.time < reactivearmor_cooldown)
 			owner.visible_message(span_danger("The reactive incendiary armor on [owner] activates, but fails to send out flames as it is still recharging its flame jets!"))
@@ -120,8 +135,8 @@
 				C.ignite_mob()
 		owner.fire_stacks = -20
 		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
-		return 1
-	return 0
+		return SHIELD_BLOCK
+	return NONE
 
 //Stealth
 
@@ -131,7 +146,7 @@
 
 /obj/item/clothing/suit/armor/reactive/stealth/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
-		return 0
+		return NONE
 	if(prob(hit_reaction_chance))
 		if(world.time < reactivearmor_cooldown)
 			owner.visible_message(span_danger("The reactive stealth system on [owner] activates, but is still recharging its holographic emitters!"))
@@ -144,7 +159,7 @@
 		owner.visible_message(span_danger("[owner] is hit by [attack_text] in the chest!")) //We pretend to be hit, since blocking it would stop the message otherwise
 		addtimer(VARSET_CALLBACK(owner, alpha, initial(owner.alpha)), 4 SECONDS)
 		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
-		return 1
+		return SHIELD_BLOCK
 
 //Tesla
 
@@ -168,7 +183,7 @@
 
 /obj/item/clothing/suit/armor/reactive/tesla/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
-		return FALSE
+		return NONE
 	if(prob(hit_reaction_chance))
 		if(world.time < reactivearmor_cooldown)
 			var/datum/effect_system/spark_spread/sparks = new /datum/effect_system/spark_spread
@@ -179,7 +194,7 @@
 		owner.visible_message(span_danger("[src] blocks [attack_text], sending out arcs of lightning!"))
 		tesla_zap(owner, zap_range, zap_power, zap_flags)
 		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
-		return TRUE
+		return SHIELD_BLOCK
 
 //Repulse
 
@@ -190,7 +205,7 @@
 
 /obj/item/clothing/suit/armor/reactive/repulse/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
-		return 0
+		return NONE
 	if(prob(hit_reaction_chance))
 		if(world.time < reactivearmor_cooldown)
 			owner.visible_message(span_danger("The repulse generator is still recharging!"))
@@ -207,7 +222,7 @@
 			thrown_items[A] = A
 
 		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
-		return 1
+		return SHIELD_BLOCK
 
 /obj/item/clothing/suit/armor/reactive/table
 	name = "reactive table armor"
@@ -216,7 +231,7 @@
 
 /obj/item/clothing/suit/armor/reactive/table/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
-		return 0
+		return NONE
 	if(prob(hit_reaction_chance))
 		var/mob/living/carbon/human/H = owner
 		if(world.time < reactivearmor_cooldown)
@@ -242,8 +257,8 @@
 		H.forceMove(picked)
 		new /obj/structure/table(get_turf(owner))
 		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
-		return 1
-	return 0
+		return SHIELD_BLOCK
+	return NONE
 
 /obj/item/clothing/suit/armor/reactive/table/emp_act()
 	return

@@ -6,8 +6,13 @@
 	damage = 70
 	knockdown = 50
 	armour_penetration = 60
-	var/breakthings = TRUE
 	bullet_identifier = "huge bullet"
+	var/breakthings = TRUE
+
+/obj/projectile/bullet/p50/Initialize()
+	. = ..()
+	if(breakthings) // doesn't just penetrate shields, it DESTROYS them
+		ADD_TRAIT(src, TRAIT_SHIELDBUSTER, INNATE_TRAIT)
 
 /obj/projectile/bullet/p50/on_hit(atom/target, blocked = 0)
 	if(isobj(target) && (blocked != 100) && breakthings)

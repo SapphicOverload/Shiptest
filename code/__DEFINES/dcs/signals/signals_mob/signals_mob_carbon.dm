@@ -68,8 +68,14 @@
 #define COMSIG_HUMAN_MELEE_UNARMED_ATTACKBY "human_melee_unarmed_attackby"
 //from /mob/living/carbon/human/proc/check_shields(): (atom/hit_by, damage, attack_text, attack_type, armour_penetration)
 #define COMSIG_HUMAN_CHECK_SHIELDS "human_check_shields"
+	///Standard block, stops projectiles in their tracks
 	#define SHIELD_BLOCK (1<<0)
-
+	///Reflects projectiles back to whence they came
+	#define SHIELD_REFLECT (1<<1)
+	///Projectiles just pass right through
+	#define SHIELD_DODGE (1<<2)
+///from /mob/living/carbon/human/proc/check_shields(): (block_result)
+#define COMSIG_HUMAN_AFTER_BLOCK "human_after_block"
 // Mob transformation signals
 ///Called when a human turns into a monkey, from /mob/living/carbon/proc/finish_monkeyize()
 #define COMSIG_HUMAN_MONKEYIZE "human_monkeyize"

@@ -135,12 +135,8 @@
 	sharpness = SHARP_EDGED
 	embedding = list("embed_chance" = 75, "impact_pain_mult" = 10)
 	armour_penetration = 35
-	block_chance = 50
-
-/obj/item/melee/energy/sword/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(HAS_TRAIT(src, TRAIT_TRANSFORM_ACTIVE))
-		return ..()
-	return 0
+	block_force = 15
+	block_flags = WEAPON_BLOCK_FLAGS|PROJECTILE_ATTACK|REFLECTIVE_BLOCK|TRANSFORM_BLOCK
 
 /obj/item/melee/energy/sword/cyborg
 	sword_color = "red"
@@ -170,9 +166,7 @@
 	light_color = LIGHT_COLOR_LIGHT_CYAN
 	tool_behaviour = TOOL_SAW
 	toolspeed = 0.7 //faster as a saw
-
-/obj/item/melee/energy/sword/cyborg/saw/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	return FALSE
+	block_force = 0
 
 /obj/item/melee/energy/sword/saber
 	var/list/possible_colors = list("red" = COLOR_SOFT_RED, "blue" = LIGHT_COLOR_LIGHT_CYAN, "green" = LIGHT_COLOR_GREEN, "purple" = LIGHT_COLOR_LAVENDER, "yellow" = COLOR_YELLOW)
@@ -289,7 +283,6 @@
 	righthand_file = 'icons/mob/inhands/weapons/swords_righthand.dmi'
 	sharpness = SHARP_EDGED
 	armour_penetration = 200
-	block_chance = 0
 	force = 0
 	throwforce = 0
 	hitsound = "swing_hit" //it starts deactivated
@@ -338,6 +331,7 @@
 /obj/item/melee/energy/flyssa/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/cell, cell_override, _cell_can_be_removed=FALSE, _has_cell_overlays=FALSE)
+	AddComponent(/datum/component/blocking, block_force = 15, block_flags = WEAPON_BLOCK_FLAGS)
 	RegisterSignal(src, COMSIG_TRANSFORMING_PRE_TRANSFORM, PROC_REF(check_power))
 	update_appearance()
 

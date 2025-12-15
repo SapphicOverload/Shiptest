@@ -45,6 +45,10 @@
 /obj/item/melee/duelenergy/ComponentInitialize()
 	. = ..()
 	AddComponent(/datum/component/two_handed, force_unwielded = force, force_wielded = two_hand_force, wieldsound = 'sound/weapons/saberon.ogg', unwieldsound = 'sound/weapons/saberoff.ogg')
+	AddComponent(/datum/component/blocking, \
+		block_force = 30, \
+		block_flags = WEAPON_BLOCK_FLAGS|PROJECTILE_ATTACK|REFLECTIVE_BLOCK|OMNIDIRECTIONAL_BLOCK|WIELD_TO_BLOCK, \
+	)
 
 /obj/item/melee/duelenergy/Destroy()
 	STOP_PROCESSING(SSobj, src)
@@ -90,15 +94,6 @@
 	if(HAS_TRAIT(src, TRAIT_WIELDED) && HAS_TRAIT(user, TRAIT_CLUMSY) && prob(40))
 		impale(user)
 		return
-
-/obj/item/melee/duelenergy/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(HAS_TRAIT(src, TRAIT_WIELDED))
-		return ..()
-	return FALSE
-
-/obj/item/melee/duelenergy/IsReflect()
-	if(HAS_TRAIT(src, TRAIT_WIELDED))
-		return TRUE
 
 /obj/item/melee/duelenergy/process(seconds_per_tick)
 	if(HAS_TRAIT(src, TRAIT_WIELDED))

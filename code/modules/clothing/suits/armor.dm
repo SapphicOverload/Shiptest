@@ -244,7 +244,7 @@
 
 /obj/item/clothing/suit/armor/laserproof
 	name = "reflector vest"
-	desc = "A vest that excels in protecting the wearer against energy projectiles, as well as occasionally reflecting them."
+	desc = "A vest that excels in protecting the wearer against energy projectiles, reflecting some of the incoming."
 	icon_state = "laserproof"
 	item_state = "armor_reflec"
 	blood_overlay_type = "armor"
@@ -252,13 +252,10 @@
 	heat_protection = CHEST|GROIN|ARMS
 	armor = list("melee" = 10, "bullet" = 10, "laser" = 65, "energy" = 65, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 100, "wound" = 10)
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | ACID_PROOF
-	var/hit_reflect_chance = 5
 
-/obj/item/clothing/suit/armor/laserproof/IsReflect(def_zone)
-	if(!(def_zone in list(BODY_ZONE_CHEST, BODY_ZONE_PRECISE_GROIN, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM))) //If not shot where ablative is covering you, you don't get the reflection bonus!
-		return FALSE
-	if (prob(hit_reflect_chance))
-		return TRUE
+/obj/item/clothing/suit/armor/laserproof/ComponentInitialize()
+	. = ..()
+	AddElement(/datum/element/reflective, covered_parts = CHEST|GROIN|ARMS, reflect_ratio = 0.15)
 
 /obj/item/clothing/suit/armor/vest/det_suit
 	name = "detective's armor vest"

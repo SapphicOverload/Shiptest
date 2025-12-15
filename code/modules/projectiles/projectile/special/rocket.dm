@@ -7,6 +7,10 @@
 	armour_penetration = 100
 	dismemberment = 30
 
+/obj/projectile/bullet/a84mm/Initialize()
+	. = ..()
+	ADD_TRAIT(src, TRAIT_SHIELDBUSTER, INNATE_TRAIT) // you can't block a fucking missile
+
 /obj/projectile/bullet/a84mm/on_hit(atom/target, blocked = FALSE)
 	..()
 	explosion(target, 0, 1, 2, 1, 0, flame_range = 4)

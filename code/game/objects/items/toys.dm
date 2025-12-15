@@ -397,13 +397,8 @@
 	throw_speed = 3
 	throw_range = 5
 	two_hand_force = 0
+	block_force = 0
 	attack_verb = list("attacked", "struck", "hit")
-
-/obj/item/melee/duelenergy/saber/toy/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	return 0
-
-/obj/item/melee/duelenergy/saber/toy/IsReflect() //Stops Toy Dualsabers from reflecting energy projectiles
-	return 0
 
 /obj/item/toy/katana
 	name = "replica katana"

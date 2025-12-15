@@ -5,25 +5,17 @@
 	icon = 'icons/obj/shields.dmi'
 	lefthand_file = 'icons/mob/inhands/equipment/shields_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/shields_righthand.dmi'
-	block_cooldown_time = 0 SECONDS
 	slot_flags = ITEM_SLOT_BACK
 	force = 10
 	item_flags = SLOWS_WHILE_IN_HAND
 	slowdown = 1.25
 	drag_slowdown = 1.25
-	block_chance = 50
 	throwforce = 5
 	throw_speed = 2
 	throw_range = 3
 	w_class = WEIGHT_CLASS_BULKY
 	attack_verb = list("shoved", "bashed")
 	armor = list("melee" = 50, "bullet" = 50, "laser" = 50, "energy" = 0, "bomb" = 30, "bio" = 0, "rad" = 0, "fire" = 80, "acid" = 70)
-	/// makes beam projectiles pass through the shield
-	var/transparent = FALSE
-	/// threshold where armor piercing works
-	var/ap_threshold = 20
-	/// if the shield will break by sustaining damage
-	var/breakable_by_damage = TRUE
 	/// baton bash cooldown
 	COOLDOWN_DECLARE(baton_bash)
 	/// is shield bashable?
@@ -32,9 +24,18 @@
 	var/shield_bash_sound = 'sound/effects/shieldbash.ogg'
 	var/recoil_bonus = -2
 	var/broken = FALSE
+	var/block_force = 20
+	var/block_flags = SHIELD_BLOCK_FLAGS
 
-/obj/item/shield/proc/on_block(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", damage = 0, attack_type = MELEE_ATTACK)
-	take_damage(damage)
+/obj/item/shield/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/blocking, block_force = src.block_force, block_flags = src.block_flags)
+	RegisterSignal(src, COMSIG_ITEM_PRE_BLOCK, PROC_REF(block_check))
+
+/obj/item/shield/proc/block_check(obj/item/source, mob/living/defender, atom/movable/incoming, damage, attack_type)
+	if(broken)
+		return COMPONENT_CANCEL_BLOCK
+	return NONE
 
 /obj/item/shield/atom_break(damage_flag)
 	. = ..()
@@ -42,7 +43,6 @@
 		if(isliving(loc))
 			loc.balloon_alert(loc, "[src] cracks!")
 		name = "broken [src::name]"
-		block_chance = 0
 		slowdown = 0
 		drag_slowdown = 0
 		broken = TRUE
@@ -58,28 +58,6 @@
 		if(0 to 25)
 			. += span_warning("It's falling apart!")
 
-/obj/item/shield/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK, damage_type = BRUTE)
-	if(transparent && (hitby.pass_flags & PASSGLASS))
-		return FALSE
-	if(attack_type == THROWN_PROJECTILE_ATTACK)
-		final_block_chance += 30
-	if(attack_type == LEAP_ATTACK)
-		final_block_chance = 100
-	if(isobj(hitby))
-		var/obj/pointy = hitby
-		//9mm 10-30 - ap thresh = -40
-		//57 10+20 - ap thresh  = 10
-		//5556 12.5+30 - ap thresh = 22.5
-		//6.5 20+80 - ap thresh = 80
-		var/chance_to_pen = (damage*0.5 + pointy.armour_penetration*1.5) - ap_threshold
-		if(prob(chance_to_pen))
-			take_damage(armour_penetration, damage_type)
-			to_chat(owner, span_boldwarning("Your shield is penetrated by [hitby]!"))
-			return FALSE
-	. = ..()
-	if(.)
-		on_block(owner, hitby, attack_text, damage, attack_type, damage_type)
-
 /obj/item/shield/riot
 	name = "ballistic shield"
 	desc = "A shield adept at blocking blunt objects and bullets from connecting with the torso of the shield wielder. Use 10 plasteel to repair."
@@ -88,7 +66,7 @@
 
 	force = 15
 	max_integrity = 600
-	block_chance = 60
+	block_force = 25
 	integrity_failure = 0.1
 	material_flags = MATERIAL_NO_EFFECTS
 
@@ -110,7 +88,6 @@
 			to_chat(user, span_notice("You repair [src] with [T]."))
 			name = src::name
 			broken = FALSE
-			block_chance = 60
 			slowdown = 1.25
 			drag_slowdown = 1.25
 
@@ -129,13 +106,12 @@
 	item_state = "roman_shield"
 	lefthand_file = 'icons/mob/inhands/equipment/shields_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/shields_righthand.dmi'
-	transparent = FALSE
 	custom_materials = list(/datum/material/iron=8500)
 	max_integrity = 65
 
 /obj/item/shield/riot/roman/fake
 	desc = "Bears an inscription on the inside: <i>\"Romanes venio domus\"</i>. It appears to be a bit flimsy."
-	block_chance = 0
+	block_force = 3 // can block punches at most
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0)
 	max_integrity = 30
 	recoil_bonus = 0 //it's PLASTIC
@@ -151,8 +127,8 @@
 	righthand_file = 'icons/mob/inhands/equipment/shields_righthand.dmi'
 	custom_materials = list(/datum/material/wood = MINERAL_MATERIAL_AMOUNT * 10)
 	resistance_flags = FLAMMABLE
-	block_chance = 25
-	transparent = FALSE
+	block_force = 15
+	block_flags = SHIELD_BLOCK_FLAGS|PARRYING_BLOCK // small enough to parry with
 	max_integrity = 55
 	integrity_failure = 0.2
 	w_class = WEIGHT_CLASS_NORMAL
@@ -176,6 +152,7 @@
 /obj/item/shield/riot/flash/Initialize()
 	. = ..()
 	embedded_flash = new(src)
+	RegisterSignal(src, COMSIG_ITEM_POST_BLOCK, PROC_REF(post_block))
 
 /obj/item/shield/riot/flash/ComponentInitialize()
 	. = .. ()
@@ -189,9 +166,8 @@
 	. = embedded_flash.attack_self(user)
 	update_appearance()
 
-/obj/item/shield/riot/flash/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	. = ..()
-	if (. && !embedded_flash.burnt_out)
+/obj/item/shield/riot/flash/proc/post_block(obj/item/source, mob/living/defender, atom/movable/incoming, damage, attack_type)
+	if(!embedded_flash.burnt_out)
 		embedded_flash.activate()
 		update_appearance()
 
@@ -245,7 +221,8 @@
 	throwforce = 3
 	throw_speed = 3
 	base_icon_state = "eshield" // [base_icon_state]1 for expanded, [base_icon_state]0 for contracted
-	breakable_by_damage = FALSE
+	block_force = 30
+	block_flags = PROJECTILE_ATTACK|REFLECTIVE_BLOCK
 	var/on_force = 10
 	var/on_throwforce = 8
 	var/on_throw_speed = 2
@@ -256,11 +233,16 @@
 	. = ..()
 	icon_state = "[base_icon_state]0"
 
-/obj/item/shield/energy/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	return 0
-
-/obj/item/shield/energy/IsReflect()
-	return (active)
+// can only block reflectable projectiles
+/obj/item/shield/energy/block_check(obj/item/source, mob/living/defender, atom/movable/incoming, damage, attack_type)
+	if(!active)
+		return COMPONENT_CANCEL_BLOCK
+	if(!isprojectile(incoming))
+		return COMPONENT_CANCEL_BLOCK
+	var/obj/projectile/incoming_projectile = incoming
+	if(!(incoming_projectile.reflectable & REFLECT_NORMAL))
+		return COMPONENT_CANCEL_BLOCK
+	return ..()
 
 /obj/item/shield/energy/attack_self(mob/living/carbon/human/user)
 	if(clumsy_check && HAS_TRAIT(user, TRAIT_CLUMSY) && prob(50))
@@ -300,10 +282,10 @@
 	w_class = WEIGHT_CLASS_NORMAL
 	var/active = 0
 
-/obj/item/shield/riot/tele/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(active)
-		return ..()
-	return 0
+/obj/item/shield/riot/tele/block_check(obj/item/source, mob/living/defender, atom/movable/incoming, damage, attack_type)
+	if(!active)
+		return COMPONENT_CANCEL_BLOCK
+	return ..()
 
 /obj/item/shield/riot/tele/attack_self(mob/living/user)
 	active = !active
@@ -335,8 +317,8 @@
 	righthand_file = 'icons/mob/inhands/equipment/shields_righthand.dmi'
 	mob_overlay_icon = 'icons/mob/clothing/back.dmi'
 	custom_materials = list()
-	transparent = FALSE
-	block_chance = 25
+	block_force = 15
+	block_flags = SHIELD_BLOCK_FLAGS
 	max_integrity = 70
 	w_class = WEIGHT_CLASS_BULKY
 

@@ -170,6 +170,7 @@
 	update_part_values()
 	AddComponent(/datum/component/automatic_fire_mecha,0.5)
 	set_up_unique_action()
+	ADD_TRAIT(src, TRAIT_SHIELDBUSTER, INNATE_TRAIT) // previously it didn't even check shields at all, now it still doesn't but does some fun stuff in the process
 
 /obj/mecha/update_icon_state()
 	if(silicon_pilot && silicon_icon_state)

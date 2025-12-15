@@ -190,7 +190,6 @@
 	slot_flags = ITEM_SLOT_BACK
 	throwforce = 5
 	throw_speed = 4
-	block_chance = 20
 	custom_materials = list(/datum/material/titanium=5000, /datum/material/iron=2075)
 	hitsound = 'sound/weapons/blade1.ogg'
 	attack_verb = list("sliced", "bisected", "diced", "chopped", "filleted")
@@ -214,6 +213,7 @@
 	. = ..()
 	RegisterSignal(src, COMSIG_TWOHANDED_WIELD, PROC_REF(on_wield))
 	RegisterSignal(src, COMSIG_TWOHANDED_UNWIELD, PROC_REF(on_unwield))
+	AddComponent(/datum/component/blocking, block_force = 14, block_flags = WEAPON_BLOCK_FLAGS)
 
 /// triggered on wield of two handed item
 /obj/item/kinetic_crusher/syndie_crusher/proc/on_wield(obj/item/source, mob/user)

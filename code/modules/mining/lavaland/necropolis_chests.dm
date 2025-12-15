@@ -965,47 +965,24 @@
 /obj/item/clothing/suit/armor/ascetic/examine(mob/user)
 	. = ..()
 	. += span_notice("The ascetic's magic woven into this robe increases the owner's speed and deflects harm from their person- however, once it's mirages have melted away, it causes significantly more damage to be taken. The magic can withstand three attacks before it must recover, but it begins regenerating quickly.")
+	AddComponent(/datum/component/shielded, \
+				max_charges = 3, \
+				recharge_delay = 4.5 SECONDS, \
+				charge_recovery = 3, \
+				shield_icon_file = 'icons/effects/effects.dmi', \
+				shield_icon = "shimmerair", \
+				run_hit_callback = CALLBACK(src, PROC_REF(shield_damaged)), \
+				block_flag = SHIELD_DODGE)
 
-/obj/item/clothing/suit/armor/ascetic/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	recharge_cooldown = world.time + recharge_delay
-	if(current_charges > 0)
-		var/datum/effect_system/spark_spread/s = new
-		s.set_up(2, 1, src)
-		s.start()
-		owner.visible_message(span_danger("The air seems to shift and boil around [owner]'s body, causing the [attack_text] to fly uselessly past!"))
-		current_charges--
-		if(recharge_rate)
-			START_PROCESSING(SSobj, src)
-		if(current_charges <= 1)
-			to_chat(owner, span_warning("The defensive wind is faltering!"))
-		if(current_charges <= 0)
-			owner.visible_message(span_warning("The desert storm protecting [owner] fades away, leaving only ionized sparks!"))
-			playsound(loc, 'sound/weather/ashstorm/outside/weak_end.ogg', 100, TRUE)
-			shield_state = "broken"
-			owner.update_inv_wear_suit()
-		return 1
-	return 0
 
-/obj/item/clothing/suit/armor/ascetic/Destroy()
-	STOP_PROCESSING(SSobj, src)
-	return ..()
-
-/obj/item/clothing/suit/armor/ascetic/process(seconds_per_tick)
-	if(world.time > recharge_cooldown && current_charges < max_charges)
-		current_charges = clamp((current_charges + recharge_rate), 0, max_charges)
-		playsound(loc, 'sound/effects/magic.ogg', 40, TRUE)
-		if(current_charges == max_charges)
-			visible_message(span_warning("The strange wind returns to full strength!"))
-			STOP_PROCESSING(SSobj, src)
-		shield_state = "[shield_on]"
-		if(ishuman(loc))
-			var/mob/living/carbon/human/C = loc
-			C.update_inv_wear_suit()
-
-/obj/item/clothing/suit/armor/ascetic/worn_overlays(isinhands)
-	. = ..()
-	if(!isinhands)
-		. += mutable_appearance('icons/effects/effects.dmi', shield_state, MOB_LAYER - 0.01)
+/obj/item/clothing/suit/armor/ascetic/proc/shield_damaged(mob/living/owner, attack_text, current_charges)
+	do_sparks(2, TRUE, owner)
+	owner.visible_message(span_danger("The air seems to shift and boil around [owner]'s body, causing [attack_text] to fly uselessly past!"))
+	if(current_charges <= 0)
+		owner.visible_message(span_warning("The desert storm protecting [owner] fades away, leaving only ionized sparks!"))
+		playsound(loc, 'sound/weather/ashstorm/outside/weak_end.ogg', 100, TRUE)
+	else if(current_charges == 1)
+		to_chat(owner, span_warning("The defensive wind is faltering!"))
 
 ///Bosses
 

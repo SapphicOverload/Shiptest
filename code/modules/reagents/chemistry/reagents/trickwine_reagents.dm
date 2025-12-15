@@ -462,12 +462,12 @@
 	var/recent_movement = FALSE
 
 /datum/status_effect/trickwine/buff/prism/on_apply()
-	RegisterSignal(owner, COMSIG_CHECK_REFLECT, PROC_REF(on_check_reflect))
 	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(on_move))
+	RegisterSignal(owner, COMSIG_HUMAN_CHECK_SHIELDS, PROC_REF(on_check_shields))
 	return ..()
 
 /datum/status_effect/trickwine/buff/prism/on_remove()
-	UnregisterSignal(owner, list(COMSIG_CHECK_REFLECT, COMSIG_MOVABLE_MOVED))
+	UnregisterSignal(owner, list(COMSIG_MOVABLE_MOVED, COMSIG_HUMAN_CHECK_SHIELDS))
 	..()
 
 /datum/status_effect/trickwine/buff/prism/tick()
@@ -484,12 +484,16 @@
 	reflect_count = clamp(reflect_count + change, 0, MAX_REFLECTS)
 	owner.add_filter(id, 2, drop_shadow_filter(x = 0, y = -1, size = 1 + reflect_count, color = reagent_color))
 
-/datum/status_effect/trickwine/buff/prism/proc/on_check_reflect(mob/living/carbon/human/owner, def_zone)
+/datum/status_effect/trickwine/buff/prism/proc/on_check_shields(mob/living/defender, atom/movable/incoming, damage, attack_text, attack_type, armour_penetration, damage_type)
 	SIGNAL_HANDLER
-	if(reflect_count > 0)
+	if(!isprojectile(incoming))
+		return NONE
+	var/obj/projectile/incoming_projectile
+	if((incoming_projectile.reflectable & REFLECT_NORMAL) && reflect_count > 0)
 		to_chat(owner, span_notice("Your resin sweat protects you!"))
 		adjust_charge(-1)
-		return TRUE
+		return SHIELD_REFLECT
+	return NONE
 
 // The idea is that its a resin made of sweat, therfore stay moving
 /datum/status_effect/trickwine/buff/prism/proc/on_move()

@@ -8,23 +8,17 @@
 	flags_1 = CONDUCT_1
 	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_BACK
 	w_class = WEIGHT_CLASS_BULKY
-	block_chance = 10
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 	sharpness = SHARP_EDGED
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 50)
 	resistance_flags = FIRE_PROOF
 	demolition_mod = 0.75
+	block_force = 8
 
 /obj/item/melee/sword/ComponentInitialize()
 	. = ..()
 	AddComponent(/datum/component/butchering, 30, 95, 5) //fast and effective, but as a sword, it might damage the results.
 	AddComponent(/datum/component/jousting, max_tile_charge = 7, min_tile_charge = 4)
-
-//cruft
-/obj/item/melee/sword/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(attack_type == PROJECTILE_ATTACK)
-		final_block_chance = projectile_block_chance //Don't bring a sword to a gunfight
-	return ..()
 
 /obj/item/melee/sword/claymore
 	name = "claymore"
@@ -33,7 +27,7 @@
 	item_state = "claymore"
 	force = 30
 	throwforce = 10
-	block_chance = 40
+	block_force = 25
 	max_integrity = 200
 
 /obj/item/melee/sword/claymore/Initialize()
@@ -68,30 +62,26 @@
 	throwforce = 15
 	max_integrity = 300
 	integrity_failure = 0.50
+	block_flags = WEAPON_BLOCK_FLAGS|DAMAGE_ON_BLOCK
 	var/broken = FALSE
-
 
 /obj/item/melee/sword/mass/ComponentInitialize()
 	. = ..()
 	AddComponent(/datum/component/two_handed, force_unwielded = 20, force_wielded = 22, icon_wielded = "[base_icon_state]_w")
-
-
-/obj/item/melee/sword/mass/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	. = ..()
-	if(.)
-		on_block(owner, hitby, attack_text, damage, attack_type)
-
-/obj/item/melee/sword/mass/proc/on_block(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", damage = 0, attack_type = MELEE_ATTACK)
-	take_damage(damage)
+	RegisterSignal()
 
 /obj/item/melee/sword/mass/welder_act(mob/living/user, obj/item/I)
 	. = ..()
+	if(atom_integrity < max_integrity && I.use_tool(src, user, 0, volume = 40))
+		name = src::name
+		atom_integrity = max_integrity
+	return TRUE
+
+/obj/item/melee/sword/mass/atom_fix()
+	. = ..()
 	if(broken)
-		if(I.use_tool(src, user, 0, volume = 40))
-			name = src::name
-			broken = FALSE
-			atom_integrity = max_integrity
-		return TRUE
+		broken = FALSE
+		AddComponent(/datum/component/blocking, block_force = block_force, block_flags = block_flags)
 
 /obj/item/melee/sword/mass/atom_break(damage_flag)
 	. = ..()
@@ -100,6 +90,9 @@
 			loc.balloon_alert(loc, "[src] cracks!")
 		name = "broken [src::name]"
 		broken = TRUE
+		var/datum/component/blocking/block_component = GetComponent(/datum/component/blocking)
+		if(block_component)
+			qdel(block_component)
 
 /obj/item/melee/sword/mass/examine(mob/user)
 	. = ..()
@@ -121,7 +114,7 @@
 	force = 30
 	throwforce = 10
 	w_class = WEIGHT_CLASS_HUGE
-	block_chance = 10
+	block_force = 10
 	max_integrity = 200
 
 /obj/item/melee/sword/chainsaw
@@ -151,7 +144,7 @@
 	wound_bonus = 5
 	bare_wound_bonus = 10
 	throwforce = 10
-	block_chance = 10
+	block_force = 10
 
 /obj/item/melee/sword/kukri/on_enter_storage(datum/component/storage/concrete/S)
 	var/obj/item/storage/belt/sabre/B = S.real_location()
@@ -255,7 +248,7 @@
 	slot_flags = ITEM_SLOT_BACK
 	force = 15
 	throwforce = 8
-	block_chance = 30
+	block_force = 15
 	attack_verb = list("struck", "slashed", "mall-ninjad", "tided", "multi-shanked", "shredded")
 
 	var/prick_chance = 50
@@ -291,7 +284,6 @@
 	name = "vibro sword"
 	desc = "A potent weapon capable of cutting through nearly anything. Wielding it in two hands will allow you to deflect gunfire."
 	armour_penetration = 100
-	block_chance = 30
 	force = 20
 	throwforce = 20
 	throw_speed = 4
@@ -304,24 +296,11 @@
 	. = ..()
 	AddComponent(/datum/component/butchering, 20, 105)
 	AddComponent(/datum/component/two_handed, force_multiplier=2, icon_wielded="[base_icon_state]1")
+	AddComponent(/datum/component/blocking, block_force = 30, block_flags = WEAPON_BLOCK_FLAGS|PROJECTILE_ATTACK|REFLECTIVE_BLOCK|WIELD_TO_BLOCK)
 
 /obj/item/melee/sword/vibro/update_icon_state()
 	icon_state = "[base_icon_state]0"
 	return ..()
-
-/obj/item/melee/sword/vibro/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(HAS_TRAIT(src, TRAIT_WIELDED))
-		final_block_chance *= 2
-	if(HAS_TRAIT(src, TRAIT_WIELDED) || attack_type != PROJECTILE_ATTACK)
-		if(prob(final_block_chance))
-			if(attack_type == PROJECTILE_ATTACK)
-				owner.visible_message(span_danger("[owner] deflects [attack_text] with [src]!"))
-				playsound(src, pick('sound/weapons/bulletflyby.ogg', 'sound/weapons/bulletflyby2.ogg', 'sound/weapons/bulletflyby3.ogg'), 75, TRUE)
-				return 1
-			else
-				owner.visible_message(span_danger("[owner] parries [attack_text] with [src]!"))
-				return 1
-	return 0
 
 /obj/item/melee/sword/weebstick
 	name = "Weeb Stick"
@@ -334,18 +313,14 @@
 	throw_speed = 4
 	throw_range = 5
 	throwforce = 12
-	block_chance = 20
+	block_force = 12
 	armour_penetration = 50
 	hitsound = 'sound/weapons/anime_slash.ogg'
 
 /obj/item/melee/sword/weebstick/Initialize()
 	. = ..()
 	AddComponent(/datum/component/butchering, 25, 90, 5) //Not made for scalping victims, but will work nonetheless
-
-/obj/item/melee/sword/weebstick/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(attack_type == PROJECTILE_ATTACK)
-		final_block_chance = block_chance / 2 //Pretty good...
-	return ..()
+	AddComponent(/datum/component/blocking, block_force = 10, block_flags = WEAPON_BLOCK_FLAGS|PROJECTILE_ATTACK)
 
 /obj/item/melee/sword/weebstick/on_exit_storage(datum/component/storage/concrete/S)
 	var/obj/item/storage/belt/weebstick/B = S.real_location()

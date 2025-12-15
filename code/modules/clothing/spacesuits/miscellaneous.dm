@@ -393,19 +393,31 @@ Contains:
 		if(ishuman(loc))
 			end_berserk(loc)
 
-/obj/item/clothing/head/helmet/space/hardsuit/berserker/dropped(mob/user)
+/obj/item/clothing/head/helmet/space/hardsuit/berserker/equipped(mob/user, slot)
 	. = ..()
-	end_berserk(user)
+	if(slot_flags & slot)
+		RegisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK, PROC_REF(after_block))
+	else
+		UnregisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK)
 
-/obj/item/clothing/head/helmet/space/hardsuit/berserker/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
+/obj/item/clothing/head/helmet/space/hardsuit/berserker/dropped(mob/user)
+	if(user.get_item_by_slot(ITEM_SLOT_OCLOTHING) == src)
+		UnregisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK)
+	end_berserk(user)
+	return ..()
+
+/obj/item/clothing/head/helmet/space/hardsuit/berserker/proc/after_block(mob/living/source, atom/movable/incoming, damage, block_result)
+	SIGNAL_HANDLER
 	if(berserk_active)
 		return
+	if(block_result)
+		return
 	var/berserk_value = damage * DAMAGE_TO_CHARGE_SCALE
-	if(attack_type == PROJECTILE_ATTACK)
+	if(isprojectile(incoming))
 		berserk_value *= PROJECTILE_HIT_MULTIPLIER
 	berserk_charge = clamp(round(berserk_charge + berserk_value), 0, MAX_BERSERK_CHARGE)
 	if(berserk_charge >= MAX_BERSERK_CHARGE)
-		to_chat(owner, span_notice("Berserk mode is fully charged."))
+		to_chat(source, span_notice("Berserk mode is fully charged."))
 
 /// Starts berserk, giving the wearer 50 melee armor, doubled attacking speed, NOGUNS trait, adding a color and giving them the berserk movespeed modifier
 /obj/item/clothing/head/helmet/space/hardsuit/berserker/proc/berserk_mode(mob/living/carbon/human/user)
@@ -458,15 +470,28 @@ Contains:
 	armor = list("melee" = 5, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 10, "fire" = 0, "acid" = 0)
 	strip_delay = 65
 
-/obj/item/clothing/suit/space/fragile/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(!torn && prob(50))
-		to_chat(owner, span_warning("[src] tears from the damage, breaking the air-tight seal!"))
-		clothing_flags &= ~STOPSPRESSUREDAMAGE
-		name = "torn [src]."
-		desc = "A bulky suit meant to protect the user during emergency situations, at least until someone tore a hole in the suit."
-		torn = TRUE
-		playsound(loc, 'sound/weapons/slashmiss.ogg', 50, TRUE)
-		playsound(loc, 'sound/effects/refill.ogg', 50, TRUE)
+/obj/item/clothing/suit/space/fragile/equipped(mob/user, slot)
+	. = ..()
+	if(slot_flags & slot)
+		RegisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK, PROC_REF(after_block))
+	else
+		UnregisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK)
+
+/obj/item/clothing/suit/space/fragile/dropped(mob/user)
+	if(user.get_item_by_slot(ITEM_SLOT_OCLOTHING) == src)
+		UnregisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK)
+	return ..()
+
+/obj/item/clothing/suit/space/fragile/proc/after_block(mob/living/carbon/human/owner, atom/movable/incoming, damage, block_result)
+	if(block_result || !damage || prob(50))
+		return
+	to_chat(owner, span_warning("[src] tears from the damage, breaking the air-tight seal!"))
+	clothing_flags &= ~STOPSPRESSUREDAMAGE
+	name = "torn [src]."
+	desc = "A bulky suit meant to protect the user during emergency situations, at least until someone tore a hole in the suit."
+	torn = TRUE
+	playsound(loc, 'sound/weapons/slashmiss.ogg', 50, 1)
+	playsound(loc, 'sound/effects/refill.ogg', 50, 1)
 
 /obj/item/clothing/suit/space/hunter
 	name = "bounty hunting suit"

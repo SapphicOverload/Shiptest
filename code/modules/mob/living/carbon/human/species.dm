@@ -1620,41 +1620,40 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 /datum/species/proc/spec_hitby(atom/movable/AM, mob/living/carbon/human/H)
 	return
 
-/datum/species/proc/spec_attack_hand(mob/living/carbon/human/M, mob/living/carbon/human/H, datum/martial_art/attacker_style)
-	if(!istype(M))
+/datum/species/proc/spec_attack_hand(mob/living/carbon/human/attacker, mob/living/carbon/human/defender, datum/martial_art/attacker_style)
+	if(!istype(attacker))
 		return
-	CHECK_DNA_AND_SPECIES(M)
-	CHECK_DNA_AND_SPECIES(H)
+	CHECK_DNA_AND_SPECIES(attacker)
+	CHECK_DNA_AND_SPECIES(defender)
 
-	if(!istype(M)) //sanity check for drones.
+	if(!istype(attacker)) //sanity check for drones.
 		return
-	if(M.mind)
-		attacker_style = M.mind.martial_art
-	if((M != H) && M.a_intent != INTENT_HELP && H.check_shields(M, 0, M.name, attack_type = UNARMED_ATTACK))
-		log_combat(M, H, "attempted to touch")
-		H.visible_message(span_warning("[M] attempts to touch [H]!"), \
-						span_danger("[M] attempts to touch you!"), span_hear("You hear a swoosh!"), COMBAT_MESSAGE_RANGE, M)
-		to_chat(M, span_warning("You attempt to touch [H]!"))
-		M.changeNext_move(CLICK_CD_BLOCKED)
+	if(attacker.mind)
+		attacker_style = attacker.mind.martial_art
+	if((attacker != defender) && attacker.a_intent != INTENT_HELP && defender.check_shields(attacker, 0, attacker.name, attack_type = UNARMED_ATTACK))
+		log_combat(attacker, defender, "attempted to touch")
+		attacker.visible_message(span_warning("[attacker] attempts to touch [defender]!"), \
+						span_danger("[attacker] attempts to touch you!"), span_hear("You hear a swoosh!"), COMBAT_MESSAGE_RANGE, attacker)
+		to_chat(attacker, span_warning("You attempt to touch [defender]!"))
+		attacker.changeNext_move(CLICK_CD_BLOCKED)
 		return 0
 
-	SEND_SIGNAL(M, COMSIG_MOB_ATTACK_HAND, M, H, attacker_style)
+	SEND_SIGNAL(attacker, COMSIG_MOB_ATTACK_HAND, attacker, defender, attacker_style)
 
-	switch(M.a_intent)
+	switch(attacker.a_intent)
 		if("help")
-			help(M, H, attacker_style)
+			help(attacker, defender, attacker_style)
 		if("grab")
-			grab(M, H, attacker_style)
+			grab(attacker, defender, attacker_style)
 		if("harm")
-			harm(M, H, attacker_style)
+			harm(attacker, defender, attacker_style)
 		if("disarm")
-			disarm(M, H, attacker_style)
+			disarm(attacker, defender, attacker_style)
 
 /datum/species/proc/spec_attacked_by(obj/item/I, mob/living/user, obj/item/bodypart/affecting, intent, mob/living/carbon/human/H)
 	// Allows you to put in item-specific reactions based on species
-	if(user != H)
-		if(H.check_shields(I, I.force, "the [I.name]", MELEE_ATTACK, I.armour_penetration))
-			return 0
+	if(user != H && H.check_shields(I, I.force, "the [I.name]", MELEE_ATTACK, I.armour_penetration, I.damtype))
+		return FALSE
 	if(H.check_block())
 		H.visible_message(span_warning("[H] blocks [I]!"), \
 						span_userdanger("You block [I]!"))

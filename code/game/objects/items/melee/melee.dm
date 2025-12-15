@@ -3,7 +3,13 @@
 	icon = 'icons/obj/weapon/misc.dmi'
 	lefthand_file = 'icons/mob/inhands/weapons/melee_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/weapons/melee_righthand.dmi'
-	var/projectile_block_chance = 0
+	var/block_force = 0
+	var/block_flags = WEAPON_BLOCK_FLAGS
+
+/obj/item/melee/sword/ComponentInitialize()
+	. = ..()
+	if(block_force)
+		AddComponent(/datum/component/blocking, block_force = block_force, block_flags = block_flags)
 
 //cruft
 /obj/item/melee/proc/check_martial_counter(mob/living/carbon/human/target, mob/living/carbon/human/user)
@@ -154,14 +160,13 @@
 	icon_state = "baseball_bat_bone"
 	item_state = "baseball_bat_bone"
 
-/obj/item/melee/baseball_bat/ablative/IsReflect()//some day this will reflect thrown items instead of lasers
-	var/picksound = rand(1,2)
-	var/turf = get_turf(src)
-	if(picksound == 1)
-		playsound(turf, 'sound/weapons/effects/batreflect1.ogg', 50, TRUE)
-	if(picksound == 2)
-		playsound(turf, 'sound/weapons/effects/batreflect2.ogg', 50, TRUE)
-	return 1
+/obj/item/melee/baseball_bat/ablative/ComponentInitialize()
+	. = ..()
+	AddComponent(/datum/component/blocking, \
+		block_force = 25, \
+		block_flags = WEAPON_BLOCK_FLAGS|PROJECTILE_ATTACK|REFLECTIVE_BLOCK, \
+		sound_override = list('sound/weapons/effects/batreflect1.ogg', 'sound/weapons/effects/batreflect2.ogg'), \
+	)
 
 /obj/item/melee/flyswatter
 	name = "flyswatter"

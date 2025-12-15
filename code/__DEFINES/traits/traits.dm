@@ -330,6 +330,14 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 /// A transforming item that is actively extended / transformed
 #define TRAIT_TRANSFORM_ACTIVE "active_transform"
 #define TRAIT_WIELDED "wielded" //The item is currently being wielded
+/// This item is currently parrying.
+#define TRAIT_PARRYING "parrying"
+/// Cannot be blocked with weapons, only shields.
+#define TRAIT_UNPARRIABLE "unparriable"
+/// Knocks shields out of people's hands.
+#define TRAIT_SHIELDBUSTER "shieldbuster"
+/// Prevents the attached mob from blocking.
+#define TRAIT_NO_BLOCKING "no_blocking"
 #define TRAIT_FORCE_SUIT_STORAGE "force_suit_storage" // the item can be worn in suit storage even if it's not in the allowed objects, or without an outerclothing.
 #define TRAIT_FORCE_SUIT_STORAGE_ALWAYS "force_suit_storage_naked" // the item can be worn in suit storage even while naked.
 

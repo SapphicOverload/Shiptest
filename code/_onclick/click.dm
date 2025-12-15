@@ -387,8 +387,8 @@
 */
 
 /// Simple helper to face what you clicked on, in case it should be needed in more than one place
-/mob/proc/face_atom(atom/A)
-	if(buckled || stat != CONSCIOUS || !A || !x || !y || !A.x || !A.y || HAS_TRAIT(src, TRAIT_AIMING))
+/atom/movable/proc/face_atom(atom/A)
+	if(!A || !x || !y || !A.x || !A.y)
 		return
 	var/dx = A.x - x
 	var/dy = A.y - y
@@ -413,6 +413,11 @@
 			setDir(EAST)
 		else
 			setDir(WEST)
+
+/mob/face_atom(atom/A, forced = FALSE)
+	if(!forced && (buckled || stat > CONSCIOUS || HAS_TRAIT(src, TRAIT_AIMING)))
+		return
+	return ..()
 
 //debug
 /atom/movable/screen/proc/scale_to(x1,y1)
