@@ -56,7 +56,7 @@
 
 /datum/component/blocking/RegisterWithParent()
 	RegisterSignal(parent, COMSIG_ITEM_EQUIPPED, PROC_REF(on_equip))
-	RegisterSignal(parent, COMSIG_PARENT_EXAMINE, PROC_REF(on_examine))
+	RegisterSignal(parent, COMSIG_ATOM_EXAMINE, PROC_REF(on_examine))
 	RegisterSignals(parent, list(COMSIG_PREQDELETED, COMSIG_ITEM_DROPPED), PROC_REF(on_drop))
 
 /datum/component/blocking/UnregisterFromParent()
@@ -65,7 +65,7 @@
 		REMOVE_TRAIT(active_mob, TRAIT_NO_BLOCKING, BLOCK_COOLDOWN)
 	if(active_client)
 		UnregisterSignal(active_client, list(COMSIG_CLIENT_MOUSEDOWN, COMSIG_CLIENT_MOUSEDRAG, COMSIG_CLIENT_MOUSEUP))
-	UnregisterSignal(parent, list(COMSIG_ITEM_EQUIPPED, COMSIG_PARENT_EXAMINE, COMSIG_PREQDELETED, COMSIG_ITEM_DROPPED))
+	UnregisterSignal(parent, list(COMSIG_ITEM_EQUIPPED, COMSIG_ATOM_EXAMINE, COMSIG_PREQDELETED, COMSIG_ITEM_DROPPED))
 
 /datum/component/blocking/Destroy(force, silent)
 	set_blocking(FALSE)

@@ -1,6 +1,6 @@
 /datum/element/reflective
 	element_flags = ELEMENT_BESPOKE
-	id_arg_index = 2
+	argument_hash_start_idx = 2
 
 	/// The bodypart flags covered by this item.
 	var/covered_parts
