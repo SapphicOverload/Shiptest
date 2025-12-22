@@ -124,7 +124,6 @@
 
 /obj/structure/spider/spiderling/Destroy()
 	new /obj/item/food/spiderling(get_turf(src))
-	walk(src, 0) //Clean up reference for pathing
 	. = ..()
 
 /obj/structure/spider/spiderling/Initialize()

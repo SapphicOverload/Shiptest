@@ -11,6 +11,7 @@
 	speak_chance = 20
 	speak_emote = list("groans")
 
+	movement_flags = NONE
 	turns_per_move = 5
 	speed = 0
 	maxHealth = 100

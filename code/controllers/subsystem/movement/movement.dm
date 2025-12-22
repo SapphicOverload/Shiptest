@@ -52,7 +52,7 @@ SUBSYSTEM_DEF(movement)
 		processing.len--
 		loop.process() //This shouldn't get nulls, if it does, runtime
 		if(!QDELETED(loop)) //Re-Insert the loop
-			loop.timer = world.time + loop.delay
+			// NOTE: delay handling has been moved to the loop's process() to correctly account for diagonal movement
 			queue_loop(loop)
 		if (MC_TICK_CHECK)
 			break

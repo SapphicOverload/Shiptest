@@ -23,12 +23,13 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	var/backwards		// hopefully self-explanatory
 	var/movedir			// the actual direction to move stuff in
 
-	var/list/affecting	// the list of all items that will be moved this ptick
 	var/id = ""			// the control ID	- must match controller ID
 	var/verted = 1		// Inverts the direction the conveyor belt moves.
 	var/conveying = FALSE
 	//Direction -> if we have a conveyor belt in that direction
 	var/list/neighbors
+	/// Static typecache of things that should never be moved by conveyors, set on init
+	var/static/list/unconveyables
 
 /obj/machinery/conveyor/auto/outpost
 	id = "outpost-conveyor"
@@ -65,6 +66,10 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 		setDir(newdir)
 	if(newid)
 		id = newid
+	unconveyables = typecacheof(list(
+		/obj/effect,
+		/mob/dead,
+	))
 	neighbors = list()
 	///Leaving onto conveyor detection won't work at this point, but that's alright since it's an optimization anyway
 	///Should be fine without it
@@ -186,28 +191,37 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	if(!operating) //If we're on, start conveying so moveloops on our tile can be refreshed if they stopped for some reason
 		return
 	for(var/atom/movable/movable in get_turf(src))
+		RegisterSignal(movable, COMSIG_MOVABLE_SET_ANCHORED, PROC_REF(on_conveyable_set_anchored), override = TRUE)
+		if(movable.anchored)
+			continue
 		start_conveying(movable)
 
-/obj/machinery/conveyor/proc/conveyable_enter(datum/source, atom/convayable)
+/obj/machinery/conveyor/proc/conveyable_enter(datum/source, atom/movable/conveyable)
 	SIGNAL_HANDLER
-	if(operating == CONVEYOR_OFF)
-		SSmove_manager.stop_looping(convayable, SSconveyors)
+	RegisterSignal(conveyable, COMSIG_MOVABLE_SET_ANCHORED, PROC_REF(on_conveyable_set_anchored), override = TRUE)
+	if(conveyable.anchored)
 		return
-	var/datum/move_loop/move/moving_loop = SSmove_manager.processing_on(convayable, SSconveyors)
+	if(conveyable.loc != loc) // If we are not on the same turf (order of operations memes) go to hell
+		return
+	if(operating == CONVEYOR_OFF)
+		SSmove_manager.stop_looping(conveyable, SSconveyors)
+		return
+	var/datum/move_loop/move/moving_loop = SSmove_manager.processing_on(conveyable, SSconveyors)
 	if(moving_loop)
 		moving_loop.direction = movedir
 		return
-	start_conveying(convayable)
+	start_conveying(conveyable)
 
-/obj/machinery/conveyor/proc/conveyable_exit(datum/source, atom/convayable, direction)
+/obj/machinery/conveyor/proc/conveyable_exit(datum/source, atom/movable/conveyable, direction)
 	SIGNAL_HANDLER
+	UnregisterSignal(conveyable, COMSIG_MOVABLE_SET_ANCHORED)
+	if(conveyable.anchored)
+		return
 	var/has_conveyor = neighbors["[direction]"]
-	if(!has_conveyor || !isturf(convayable.loc)) //If you've entered something on us, stop moving
-		SSmove_manager.stop_looping(convayable, SSconveyors)
-
+	if(!has_conveyor || !isturf(conveyable.loc)) //If you've entered something on us, stop moving
+		SSmove_manager.stop_looping(conveyable, SSconveyors)
 
 /obj/machinery/conveyor/proc/start_conveying(atom/movable/moving)
-	var/static/list/unconveyables = typecacheof(list(/obj/effect, /mob/dead))
 	if(!istype(moving) || is_type_in_typecache(moving, unconveyables) || moving == src)
 		return
 	moving.AddComponent(/datum/component/convey, movedir, 0.2 SECONDS)
@@ -216,6 +230,14 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	if(!ismovable(thing))
 		return
 	SSmove_manager.stop_looping(thing, SSconveyors)
+
+/// Handles a conveyed object becoming anchored/unanchored, this takes immovable objects out of the conveyor loop for optimization.
+/obj/machinery/conveyor/proc/on_conveyable_set_anchored(atom/movable/conveyable, new_anchor_state)
+	SIGNAL_HANDLER
+	if(new_anchor_state)
+		stop_conveying(conveyable)
+	else
+		start_conveying(conveyable)
 
 // attack with item, place item on conveyor
 /obj/machinery/conveyor/attackby(obj/item/I, mob/user, params)

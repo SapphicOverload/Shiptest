@@ -24,6 +24,7 @@
 
 	///delay for the automated movement.
 	var/move_to_delay = 3
+	var/movement_flags = MOVEMENT_LOOP_IGNORE_GLIDE
 	var/list/friends = list()
 
 	var/list/on_aggro_say = list()
@@ -315,11 +316,7 @@
 			return 1
 		if(retreat_distance != null) //If we have a retreat distance, check if we need to run from our target
 			if(target_distance <= retreat_distance) //If target's closer than our retreat distance, run
-				if(move_to_delay > MOB_MAXIMUM_DELAY_CONSIDERED)
-					set_glide_size(DELAY_TO_GLIDE_SIZE(MOB_MAXIMUM_DELAY_CONSIDERED))
-					SSmove_manager.move_away(src, target, retreat_distance, move_to_delay, flags = MOVEMENT_LOOP_IGNORE_GLIDE)
-				else
-					SSmove_manager.move_away(src, target, retreat_distance, move_to_delay)
+				SSmove_manager.move_away(src, target, retreat_distance, move_to_delay, flags = movement_flags)
 			else
 				Goto(target,move_to_delay,minimum_distance) //Otherwise, get to our minimum distance so we chase them
 		else
@@ -355,11 +352,7 @@
 		approaching_target = TRUE
 	else
 		approaching_target = FALSE
-	if(move_to_delay > MOB_MAXIMUM_DELAY_CONSIDERED)
-		set_glide_size(DELAY_TO_GLIDE_SIZE(MOB_MAXIMUM_DELAY_CONSIDERED))
-		SSmove_manager.move_to(src, target, minimum_distance, delay, flags = MOVEMENT_LOOP_IGNORE_GLIDE)
-	else
-		SSmove_manager.move_to(src, target, minimum_distance, delay)
+	SSmove_manager.move_to(src, target, minimum_distance, delay, flags = movement_flags)
 
 /mob/living/simple_animal/hostile/adjustHealth(amount, updating_health = TRUE, forced = FALSE)
 	. = ..()

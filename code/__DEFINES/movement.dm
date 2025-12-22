@@ -40,4 +40,4 @@ GLOBAL_VAR_INIT(glide_size_multiplier, 1.0)
 #define MOVEMENT_BUCKET_LIST 2
 
 ///The maximum delay considered when applying glide time, anything after this will disconnect movement delay from glide time.
-#define MOB_MAXIMUM_DELAY_CONSIDERED (0.8 SECONDS)
+#define MOB_MAXIMUM_DELAY_CONSIDERED (1.2 SECONDS)

@@ -102,17 +102,28 @@
 		return
 
 	var/visual_delay = controller.visual_delay
+	var/atom/old_loc = moving.loc
 	var/success = move()
 
 	SEND_SIGNAL(src, COMSIG_MOVELOOP_POSTPROCESS, success, delay * visual_delay)
 
-	if(QDELETED(src) || !success) //Can happen
+	if(QDELETED(src)) //Can happen
+		return
+
+	timer = world.time + delay
+	if(!success)
 		return
 
 	if(flags & MOVEMENT_LOOP_IGNORE_GLIDE)
 		return
 
-	moving.set_glide_size(MOVEMENT_ADJUSTED_GLIDE_SIZE(delay, visual_delay))
+	// This adds extra time for diagonal moves, making hostile mob movement more closely mimic player movement
+	var/direction_travelled = get_dir(old_loc, moving.loc)
+	if(ISDIAGONALDIR(direction_travelled))
+		timer += delay * (SQRT_2 - 1)
+		moving.set_glide_size(MOVEMENT_ADJUSTED_GLIDE_SIZE(delay * SQRT_2, visual_delay))
+	else
+		moving.set_glide_size(MOVEMENT_ADJUSTED_GLIDE_SIZE(delay, visual_delay))
 
 ///Handles the actual move, overriden by children
 ///Returns FALSE if nothing happen, TRUE otherwise
