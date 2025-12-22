@@ -38,7 +38,6 @@
 	prev_access = access_card.access
 
 /mob/living/simple_animal/bot/hygienebot/explode()
-	walk_to(src,0)
 	visible_message(span_boldannounce("[src] blows apart in a foamy explosion!"))
 	do_sparks(3, TRUE, src)
 	on = FALSE
@@ -84,7 +83,7 @@
 	..()
 	target = null
 	oldtarget_name = null
-	walk_to(src,0)
+	SSmove_manager.stop_looping(src)
 	last_found = world.time
 
 /mob/living/simple_animal/bot/hygienebot/Moved()
@@ -107,7 +106,7 @@
 
 	switch(mode)
 		if(BOT_IDLE)		// idle
-			walk_to(src,0)
+			SSmove_manager.stop_looping(src)
 			look_for_lowhygiene()	// see if any disgusting fucks are in range
 			if(!mode && auto_patrol)	// still idle, and set to patrol
 				mode = BOT_START_PATROL	// switch to patrol mode
@@ -138,7 +137,7 @@
 					mode = BOT_SHOWERSTANCE
 				else
 					var/turf/olddist = get_dist(src, target)
-					walk_to(src, target,0, currentspeed)
+					SSmove_manager.move_to(src, target, 0, currentspeed)
 					if(mad && prob(60))
 						playsound(loc, 'sound/effects/hygienebot_angry.ogg', 60, 1)
 						speak(pick("Get back here you foul smelling fucker.", "If you don't get back here right now I'm going to give you a fucking vasectomy.", "STOP RUNNING OR I WILL CUT YOUR ARTERIES!", "Just fucking let me clean you you arsehole!", "STOP. RUNNING.", "Either you stop running or I will fucking drag you out of an airlock.", "I just want to fucking clean you you troglodyte.", "If you don't come back here I'll put a green cloud around you cunt."))
@@ -170,7 +169,7 @@
 
 /mob/living/simple_animal/bot/hygienebot/proc/back_to_idle()
 	mode = BOT_IDLE
-	walk_to(src,0)
+	SSmove_manager.stop_looping(src)
 	target = null
 	frustration = 0
 	last_found = world.time

@@ -243,6 +243,13 @@
 #define COMSIG_LIVING_GET_PULLED "living_start_pulled"
 ///from base of mob/living/set_body_position(): (new_position, old_position)
 #define COMSIG_LIVING_SET_BODY_POSITION "living_set_body_position"
+///from base of atom/experience_pressure_difference(): (pressure_difference, direction, pressure_resistance_prob_delta)
+#define COMSIG_ATOM_PRE_PRESSURE_PUSH "atom_pre_pressure_push"
+	///prevents pressure movement
+	#define COMSIG_ATOM_BLOCKS_PRESSURE (1<<0)
+
+/// From /atom/proc/set_density(new_value) for when an atom changes density
+#define COMSIG_ATOM_DENSITY_CHANGED "atom_density_change"
 
 /////////////////
 //from base of area/Entered(): (/area). Sent to "area-sensitive" movables, see __DEFINES/traits.dm for info.
@@ -314,12 +321,15 @@
 ///from base of atom/movable/Moved(): (/atom)
 #define COMSIG_MOVABLE_PRE_MOVE "movable_pre_move"
 	#define COMPONENT_MOVABLE_BLOCK_PRE_MOVE (1<<0)
-///from base of atom/movable/Moved(): (/atom, dir)
+///from base of atom/movable/Moved(): (atom/old_loc, dir, forced, list/old_locs)
 #define COMSIG_MOVABLE_MOVED "movable_moved"
 ///from base of atom/movable/Cross(): (/atom/movable)
 #define COMSIG_MOVABLE_CROSS "movable_cross"
 ///from base of atom/movable/Bump(): (/atom)
 #define COMSIG_MOVABLE_BUMP "movable_bump"
+///from base of atom/movable/newtonian_move(): (inertia_direction)
+#define COMSIG_MOVABLE_NEWTONIAN_MOVE "movable_newtonian_move"
+	#define COMPONENT_MOVABLE_NEWTONIAN_BLOCK (1<<0)
 ///from base of atom/movable/throw_impact(): (/atom/hit_atom, /datum/thrownthing/throwingdatum)
 #define COMSIG_MOVABLE_IMPACT "movable_impact"
 	#define COMPONENT_MOVABLE_IMPACT_FLIP_HITPUSH (1<<0) //if true, flip if the impact will push what it hits

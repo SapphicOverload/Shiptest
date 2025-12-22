@@ -150,7 +150,8 @@
 			var/movementdirection = turn(direction,180)
 			addtimer(CALLBACK(src, TYPE_PROC_REF(/obj/item/extinguisher, move_chair), B, movementdirection), 1)
 
-		else user.newtonian_move(turn(direction, 180))
+		else
+			user.newtonian_move(turn(direction, 180))
 
 		//Get all the turfs that can be shot at
 		var/turf/T = get_turf(target)
@@ -171,22 +172,19 @@
 				the_targets -= my_target
 
 //Chair movement loop
-/obj/item/extinguisher/proc/move_chair(obj/B, movementdirection, repetition=0)
-	step(B, movementdirection)
+/obj/item/extinguisher/proc/move_chair(obj/buckled_object, movementdirection)
+	var/datum/move_loop/loop = SSmove_manager.move(buckled_object, movementdirection, 1, timeout = 9, flags = MOVEMENT_LOOP_START_FAST, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
+	//This means the chair slowing down is dependant on the extinguisher existing, which is weird
+	//Couldn't figure out a better way though
+	RegisterSignal(loop, COMSIG_MOVELOOP_POSTPROCESS, PROC_REF(manage_chair_speed))
 
-	var/timer_seconds
-	switch(repetition)
-		if(0 to 2)
-			timer_seconds = 1
-		if(3 to 4)
-			timer_seconds = 2
-		if(5 to 8)
-			timer_seconds = 3
-		else
-			return
-
-	repetition++
-	addtimer(CALLBACK(src, TYPE_PROC_REF(/obj/item/extinguisher, move_chair), B, movementdirection, repetition), timer_seconds)
+/obj/item/extinguisher/proc/manage_chair_speed(datum/move_loop/move/source)
+	SIGNAL_HANDLER
+	switch(source.lifetime)
+		if(4 to 5)
+			source.delay = 2
+		if(1 to 3)
+			source.delay = 3
 
 /obj/item/extinguisher/AltClick(mob/user)
 	if(!user.canUseTopic(src, BE_CLOSE, ismonkey(user)))

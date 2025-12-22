@@ -130,11 +130,10 @@ Difficulty: Hard
 
 	if(!BUBBLEGUM_SMASH)
 		triple_charge()
+	else if(prob(50 + anger_modifier))
+		hallucination_charge()
 	else
-		if(prob(50 + anger_modifier))
-			hallucination_charge()
-		else
-			surround_with_hallucinations()
+		surround_with_hallucinations()
 
 /mob/living/simple_animal/hostile/megafauna/bubblegum/proc/triple_charge()
 	charge(delay = 6)

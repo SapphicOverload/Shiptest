@@ -1,6 +1,12 @@
 //conveyor2 is pretty much like the original, except it supports corners, but not diverters.
 //note that corner pieces transfer stuff clockwise when running forward, and anti-clockwise backwards.
 #define MAX_CONVEYOR_ITEMS_MOVE 30
+/// Conveyor is currently off.
+#define CONVEYOR_OFF 0
+/// Conveyor is currently configured to move items forward.
+#define CONVEYOR_FORWARD 1
+/// Conveyor is currently configured to move items backwards.
+#define CONVEYOR_BACKWARDS -1
 GLOBAL_LIST_EMPTY(conveyors_by_id)
 
 /obj/machinery/conveyor
@@ -9,8 +15,7 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	name = "conveyor belt"
 	desc = "A conveyor belt."
 	base_icon_state = "conveyor"
-	layer = BELOW_OPEN_DOOR_LAYER
-	processing_flags = START_PROCESSING_MANUALLY
+	processing_flags = NONE
 	subsystem_type = /datum/controller/subsystem/processing/fastprocess
 	var/operating = 0	// 1 if running forward, -1 if backwards, 0 if off
 	var/operable = 1	// true if can operate (no broken segments in this belt run)
@@ -22,6 +27,8 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	var/id = ""			// the control ID	- must match controller ID
 	var/verted = 1		// Inverts the direction the conveyor belt moves.
 	var/conveying = FALSE
+	//Direction -> if we have a conveyor belt in that direction
+	var/list/neighbors
 
 /obj/machinery/conveyor/auto/outpost
 	id = "outpost-conveyor"
@@ -44,15 +51,12 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 
 /obj/machinery/conveyor/auto/Initialize(mapload, newdir)
 	. = ..()
-	operating = TRUE
-	update_move_direction()
+	set_operating(TRUE)
 
 /obj/machinery/conveyor/auto/update()
 	. = ..()
 	if(.)
-		operating = TRUE
-		update_appearance()
-		begin_processing()                                              //WS Edit - Auto Conveyor Fix (Issue #331)
+		set_operating(TRUE)
 
 // create a conveyor
 /obj/machinery/conveyor/Initialize(mapload, newdir, newid)
@@ -61,12 +65,27 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 		setDir(newdir)
 	if(newid)
 		id = newid
+	neighbors = list()
+	///Leaving onto conveyor detection won't work at this point, but that's alright since it's an optimization anyway
+	///Should be fine without it
+	var/static/list/loc_connections = list(
+		COMSIG_ATOM_EXITED = PROC_REF(conveyable_exit),
+		COMSIG_ATOM_ENTERED = PROC_REF(conveyable_enter),
+		COMSIG_ATOM_CREATED = PROC_REF(conveyable_enter),
+	)
+	AddElement(/datum/element/connect_loc, loc_connections)
 	update_move_direction()
 	LAZYADD(GLOB.conveyors_by_id[id], src)
+	return INITIALIZE_HINT_LATELOAD
+
+/obj/machinery/conveyor/LateInitialize()
+	. = ..()
+	build_neighbors()
 
 /obj/machinery/conveyor/Destroy()
+	set_operating(FALSE)
 	LAZYREMOVE(GLOB.conveyors_by_id[id], src)
-	. = ..()
+	return ..()
 
 /obj/machinery/conveyor/vv_edit_var(var_name, var_value)
 	if (var_name == NAMEOF(src, id))
@@ -80,6 +99,34 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 /obj/machinery/conveyor/setDir(newdir)
 	. = ..()
 	update_move_direction()
+
+/obj/machinery/conveyor/Moved(atom/OldLoc, Dir)
+	. = ..()
+	if(!.)
+		return
+	//Now that we've moved, rebuild our neighbors list
+	neighbors = list()
+	build_neighbors()
+
+/obj/machinery/conveyor/proc/build_neighbors()
+	//This is acceptable because conveyor belts only move sometimes. Otherwise would be n^2 insanity
+	var/turf/our_turf = get_turf(src)
+	for(var/direction in GLOB.cardinals)
+		var/turf/new_turf = get_step(our_turf, direction)
+		var/obj/machinery/conveyor/valid = locate(/obj/machinery/conveyor) in new_turf
+		if(QDELETED(valid))
+			continue
+		neighbors["[direction]"] = TRUE
+		valid.neighbors["[DIRFLIP(direction)]"] = TRUE
+		RegisterSignal(valid, COMSIG_MOVABLE_MOVED, PROC_REF(nearby_belt_changed), override=TRUE)
+		RegisterSignal(valid, COMSIG_QDELETING, PROC_REF(nearby_belt_changed), override=TRUE)
+		valid.RegisterSignal(src, COMSIG_MOVABLE_MOVED, PROC_REF(nearby_belt_changed), override=TRUE)
+		valid.RegisterSignal(src, COMSIG_QDELETING, PROC_REF(nearby_belt_changed), override=TRUE)
+
+/obj/machinery/conveyor/proc/nearby_belt_changed(datum/source)
+	SIGNAL_HANDLER
+	neighbors = list()
+	build_neighbors()
 
 /obj/machinery/conveyor/proc/update_move_direction()
 	switch(dir)
@@ -121,55 +168,66 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	icon_state = "[base_icon_state][(machine_stat & BROKEN) ? "-broken" : (operating * verted)]"
 	return ..()
 
+/obj/machinery/conveyor/proc/set_operating(new_value)
+	if(operating == new_value)
+		return
+	operating = new_value
+	update_appearance()
+	update_move_direction()
+	if(!operating) //If we ever turn off, disable moveloops
+		for(var/atom/movable/movable in get_turf(src))
+			stop_conveying(movable)
+
 /obj/machinery/conveyor/proc/update()
-	if(machine_stat & BROKEN || !operable || machine_stat & NOPOWER)
-		operating = FALSE
-		update_appearance()
+	. = TRUE
+	if((machine_stat & (BROKEN|NOPOWER)) || !operable)
+		set_operating(FALSE)
 		return FALSE
-	return TRUE
-
-// machine process
-// move items to the target location
-/obj/machinery/conveyor/process(seconds_per_tick)
-	if(machine_stat & (BROKEN | NOPOWER))
+	if(!operating) //If we're on, start conveying so moveloops on our tile can be refreshed if they stopped for some reason
 		return
+	for(var/atom/movable/movable in get_turf(src))
+		start_conveying(movable)
 
-	//If the conveyor is broken or already moving items
-	if(!operating || conveying)
+/obj/machinery/conveyor/proc/conveyable_enter(datum/source, atom/convayable)
+	SIGNAL_HANDLER
+	if(operating == CONVEYOR_OFF)
+		SSmove_manager.stop_looping(convayable, SSconveyors)
 		return
+	var/datum/move_loop/move/moving_loop = SSmove_manager.processing_on(convayable, SSconveyors)
+	if(moving_loop)
+		moving_loop.direction = movedir
+		return
+	start_conveying(convayable)
 
-	use_power(6)
+/obj/machinery/conveyor/proc/conveyable_exit(datum/source, atom/convayable, direction)
+	SIGNAL_HANDLER
+	var/has_conveyor = neighbors["[direction]"]
+	if(!has_conveyor || !isturf(convayable.loc)) //If you've entered something on us, stop moving
+		SSmove_manager.stop_looping(convayable, SSconveyors)
 
-	//get the first 30 items in contents
-	affecting = list()
-	var/i = 0
-	var/list/items = loc.contents - src
-	for(var/item in items)
-		i++ // we're sure it's a real target to move at this point
-		if(i >= MAX_CONVEYOR_ITEMS_MOVE)
-			break
-		affecting.Add(item)
 
-	conveying = TRUE
-	addtimer(CALLBACK(src, PROC_REF(convey), affecting), 1)
+/obj/machinery/conveyor/proc/start_conveying(atom/movable/moving)
+	var/static/list/unconveyables = typecacheof(list(/obj/effect, /mob/dead))
+	if(!istype(moving) || is_type_in_typecache(moving, unconveyables) || moving == src)
+		return
+	moving.AddComponent(/datum/component/convey, movedir, 0.2 SECONDS)
 
-/obj/machinery/conveyor/proc/convey(list/affecting)
-	for(var/atom/movable/A in affecting)
-		if(!QDELETED(A) && (A.loc == loc))
-			A.ConveyorMove(movedir)
-			//Give this a chance to yield if the server is busy
-			CHECK_TICK
-	conveying = FALSE
+/obj/machinery/conveyor/proc/stop_conveying(atom/movable/thing)
+	if(!ismovable(thing))
+		return
+	SSmove_manager.stop_looping(thing, SSconveyors)
 
 // attack with item, place item on conveyor
 /obj/machinery/conveyor/attackby(obj/item/I, mob/user, params)
 	if(I.tool_behaviour == TOOL_CROWBAR)
 		user.visible_message(span_notice("[user] struggles to pry up \the [src] with \the [I]."), \
 		span_notice("You struggle to pry up \the [src] with \the [I]."))
-		if(I.use_tool(src, user, 40, volume=40))
+		if(I.use_tool(src, user, 4 SECONDS, volume=40))
+			set_operating(FALSE)
 			if(!(machine_stat & BROKEN))
-				var/obj/item/stack/conveyor/C = new /obj/item/stack/conveyor(loc, 1, TRUE, id)
-				transfer_fingerprints_to(C)
+				var/obj/item/stack/conveyor/belt_item = new /obj/item/stack/conveyor(loc, 1, TRUE, id)
+				if(!QDELETED(belt_item)) //God I hate stacks
+					transfer_fingerprints_to(belt_item)
 			to_chat(user, span_notice("You remove the conveyor belt."))
 			qdel(src)
 
@@ -285,14 +343,8 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 
 /// Updates all conveyor belts that are linked to this switch, and tells them to start processing.
 /obj/machinery/conveyor_switch/proc/update_linked_conveyors()
-	for(var/obj/machinery/conveyor/C in GLOB.conveyors_by_id[id])
-		C.operating = position
-		C.update_move_direction()
-		C.update_appearance()
-		if(C.operating)
-			C.begin_processing()
-		else
-			C.end_processing()
+	for(var/obj/machinery/conveyor/belt in GLOB.conveyors_by_id[id])
+		belt.set_operating(position)
 		CHECK_TICK
 
 /// Finds any switches with same `id` as this one, and set their position and icon to match us.
@@ -429,4 +481,7 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	name = "paper- 'Nano-it-up U-build series, #9: Build your very own conveyor belt, in SPACE'"
 	default_raw_text = "<h1>Congratulations!</h1><p>You are now the proud owner of the best conveyor set available for space mail order! We at Nano-it-up know you love to prepare your own structures without wasting time, so we have devised a special streamlined assembly procedure that puts all other mail-order products to shame!</p><p>Firstly, you need to link the conveyor switch assembly to each of the conveyor belt assemblies. After doing so, you simply need to install the belt assemblies onto the floor, et voila, belt built. Our special Nano-it-up smart switch will detected any linked assemblies as far as the eye can see! This convenience, you can only have it when you Nano-it-up. Stay nano!</p>"
 
+#undef CONVEYOR_BACKWARDS
+#undef CONVEYOR_OFF
+#undef CONVEYOR_FORWARD
 #undef MAX_CONVEYOR_ITEMS_MOVE

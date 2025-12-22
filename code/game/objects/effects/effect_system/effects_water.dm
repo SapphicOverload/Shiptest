@@ -40,13 +40,6 @@
 	if(life)
 		addtimer(CALLBACK(src, PROC_REF(move_particle)), 2)
 
-/obj/effect/particle_effect/water/Move(turf/newloc)
-	if(life < 1)
-		qdel(src)
-		return FALSE
-	life--
-	return ..()
-
 /obj/effect/particle_effect/water/Moved(atom/OldLoc, Dir)
 	. = ..()
 	if(!. || !reagents)
@@ -62,6 +55,16 @@
 			reagents.expose(next_turf)
 	return ..()
 
+///Extinguisher snowflake
+/obj/effect/particle_effect/water/extinguisher
+
+/obj/effect/particle_effect/water/extinguisher/Move()
+	. = ..()
+	if(!reagents)
+		return
+	reagents.expose(get_turf(src))
+	for(var/atom/thing as anything in get_turf(src))
+		reagents.expose(thing)
 
 /////////////////////////////////////////////
 // GENERIC STEAM SPREAD SYSTEM

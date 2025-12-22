@@ -223,7 +223,7 @@
 	our_splatter.blood_dna_info = get_blood_dna_list()
 	our_splatter.transfer_mob_blood_dna(src)
 	var/turf/targ = get_ranged_target_turf(src, splatter_direction, splatter_strength)
-	INVOKE_ASYNC(our_splatter, TYPE_PROC_REF(/obj/effect/decal/cleanable/blood/hitsplatter, fly_towards), targ, splatter_strength)
+	our_splatter.fly_towards(targ, splatter_strength)
 
 /mob/living/proc/restore_blood()
 	blood_volume = initial(blood_volume)

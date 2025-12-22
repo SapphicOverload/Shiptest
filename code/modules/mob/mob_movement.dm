@@ -87,7 +87,7 @@
 	if(mob.stat == DEAD)
 		mob.ghostize()
 		return FALSE
-	if(mob.force_moving)
+	if(SEND_SIGNAL(mob, COMSIG_MOB_CLIENT_PRE_LIVING_MOVE) & COMSIG_MOB_CLIENT_BLOCK_PRE_LIVING_MOVE)
 		return FALSE
 	if(mob.shifting)
 		mob.pixel_shift(direct)
@@ -129,6 +129,10 @@
 	else
 		move_delay = world.time
 
+	//Basically an optional override for our glide size
+	//Sometimes you want to look like you're moving with a delay you don't actually have yet
+	visual_delay = 0
+
 	if(L.confused)
 		var/newdir = 0
 		if(L.confused > 40)
@@ -145,7 +149,12 @@
 
 	if((direct & (direct - 1)) && mob.loc == n) //moved diagonally successfully
 		add_delay *= SQRT_2
-	mob.set_glide_size(DELAY_TO_GLIDE_SIZE(add_delay))
+
+	if(visual_delay)
+		mob.set_glide_size(visual_delay)
+	else
+		mob.set_glide_size(DELAY_TO_GLIDE_SIZE(add_delay))
+
 	move_delay += add_delay
 	if(.) // If mob is null here, we deserve the runtime
 		if(mob.throwing)
@@ -325,6 +334,14 @@
  */
 /mob/proc/mob_negates_gravity()
 	return FALSE
+
+/mob/newtonian_move(direction)
+	. = ..()
+	if(!.) //Only do this if we're actually going somewhere
+		return
+	if(!client)
+		return
+	client.visual_delay = MOVEMENT_ADJUSTED_GLIDE_SIZE(inertia_move_delay, SSspacedrift.visual_delay) //Make sure moving into a space move looks like a space move
 
 /// Called when this mob slips over, override as needed
 /mob/proc/slip(knockdown_amount, obj/O, lube, paralyze, force_drop)

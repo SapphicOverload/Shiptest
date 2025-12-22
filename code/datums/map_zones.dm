@@ -692,8 +692,7 @@
 
 		//now we're on the new z_level, proceed the space drifting
 		stoplag()//Let a diagonal move finish, if necessary
-		arrived.newtonian_move(arrived.inertia_dir)
-		arrived.inertia_moving = TRUE
+		arrived.newtonian_move(direction)
 
 /turf/closed/indestructible/edge/is_transition_turf()
 	return TRUE

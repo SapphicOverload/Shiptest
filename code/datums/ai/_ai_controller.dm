@@ -53,11 +53,6 @@ multiple modular subtrees with behaviors
 	///Delay between movements. This is on the controller so we can keep the movement datum singleton
 	var/movement_delay = 0.1 SECONDS
 
-	// The variables below are fucking stupid and should be put into the blackboard at some point.
-	///A list for the path we're currently following, if we're using JPS pathing
-	var/list/movement_path
-	///Cooldown for JPS movement, how often we're allowed to try making a new path
-	COOLDOWN_DECLARE(repath_cooldown)
 	///AI paused time
 	var/paused_until = 0
 
@@ -135,6 +130,8 @@ multiple modular subtrees with behaviors
 ///Proc for deinitializing the pawn to the old controller
 /datum/ai_controller/proc/UnpossessPawn(destroy)
 	UnregisterSignal(pawn, list(COMSIG_MOB_LOGIN, COMSIG_MOB_LOGOUT))
+	if(ai_movement.moving_controllers[src])
+		ai_movement.stop_moving_towards(src)
 	pawn.ai_controller = null
 	pawn = null
 	if(destroy)
@@ -176,7 +173,7 @@ multiple modular subtrees with behaviors
 ///Runs any actions that are currently running
 /datum/ai_controller/process(seconds_per_tick)
 	if(!able_to_run())
-		walk(pawn, 0) //stop moving
+		SSmove_manager.stop_looping(pawn) //stop moving
 		return //this should remove them from processing in the future through event-based stuff.
 	if(!LAZYLEN(current_behaviors) && idle_behavior)
 		idle_behavior.perform_idle_behavior(seconds_per_tick, src) //Do some stupid shit while we have nothing to do
