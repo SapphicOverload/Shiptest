@@ -17,3 +17,18 @@
 #define COMSIG_ITEM_WEIGHT_CLASS_CHANGED "item_weight_class_changed"
 /// Sent from /obj/item/update_weight_class(), to its loc. (obj/item/changed_item, old_w_class, new_w_class)
 #define COMSIG_ATOM_CONTENTS_WEIGHT_CLASS_CHANGED "atom_contents_weight_class_changed"
+
+// Jetpack things
+// Please kill me
+
+//called in /obj/item/tank/jetpack/proc/turn_on() : ()
+#define COMSIG_JETPACK_ACTIVATED "jetpack_activated"
+	#define JETPACK_ACTIVATION_FAILED (1<<0)
+//called in /obj/item/tank/jetpack/proc/turn_off() : ()
+#define COMSIG_JETPACK_DEACTIVATED "jetpack_deactivated"
+
+//called in /obj/item/organ/cyberimp/chest/thrusters/proc/toggle() : ()
+#define COMSIG_THRUSTER_ACTIVATED "jetmodule_activated"
+	#define THRUSTER_ACTIVATION_FAILED (1<<0)
+//called in /obj/item/organ/cyberimp/chest/thrusters/proc/toggle() : ()
+#define COMSIG_THRUSTER_DEACTIVATED "jetmodule_deactivated"

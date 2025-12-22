@@ -327,9 +327,15 @@
 #define COMSIG_MOVABLE_CROSS "movable_cross"
 ///from base of atom/movable/Bump(): (/atom)
 #define COMSIG_MOVABLE_BUMP "movable_bump"
-///from base of atom/movable/newtonian_move(): (inertia_direction)
+///from base of atom/movable/newtonian_move(): (inertia_direction, start_delay)
 #define COMSIG_MOVABLE_NEWTONIAN_MOVE "movable_newtonian_move"
 	#define COMPONENT_MOVABLE_NEWTONIAN_BLOCK (1<<0)
+///from datum/component/drift/apply_initial_visuals(): ()
+#define COMSIG_MOVABLE_DRIFT_VISUAL_ATTEMPT "movable_drift_visual_attempt"
+	#define DRIFT_VISUAL_FAILED (1<<0)
+///from datum/component/drift/allow_final_movement(): ()
+#define COMSIG_MOVABLE_DRIFT_BLOCK_INPUT "movable_drift_block_input"
+	#define DRIFT_ALLOW_INPUT (1<<0)
 ///from base of atom/movable/throw_impact(): (/atom/hit_atom, /datum/thrownthing/throwingdatum)
 #define COMSIG_MOVABLE_IMPACT "movable_impact"
 	#define COMPONENT_MOVABLE_IMPACT_FLIP_HITPUSH (1<<0) //if true, flip if the impact will push what it hits
@@ -415,7 +421,7 @@
 ///signal sent out by an atom when it checks if it can be pulled, for additional checks
 #define COMSIG_ATOM_CAN_BE_PULLED "movable_can_be_pulled"
 	#define COMSIG_ATOM_CANT_PULL (1 << 0)
-///signal sent out by an atom when it is no longer being pulled by something else
+///signal sent out by an atom when it is no longer being pulled by something else : (atom/puller)
 #define COMSIG_ATOM_NO_LONGER_PULLED "movable_no_longer_pulled"
 ///signal sent out by an atom when it is no longer pulling something : (atom/pulling)
 #define COMSIG_ATOM_NO_LONGER_PULLING "movable_no_longer_pulling"

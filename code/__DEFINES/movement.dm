@@ -32,3 +32,12 @@ GLOBAL_VAR_INIT(glide_size_multiplier, 1.0)
 #define MOVEMENT_LOOP_START_FAST (1<<0)
 ///Do we not use the priority system?
 #define MOVEMENT_LOOP_IGNORE_PRIORITY (1<<1)
+///Should we override the loop's glide?
+#define MOVEMENT_LOOP_IGNORE_GLIDE (1<<2)
+
+//Index defines for movement bucket data packets
+#define MOVEMENT_BUCKET_TIME 1
+#define MOVEMENT_BUCKET_LIST 2
+
+///The maximum delay considered when applying glide time, anything after this will disconnect movement delay from glide time.
+#define MOB_MAXIMUM_DELAY_CONSIDERED (1.2 SECONDS)

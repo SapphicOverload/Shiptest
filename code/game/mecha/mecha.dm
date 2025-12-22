@@ -577,10 +577,10 @@
 	if(.)
 		return TRUE
 
-	var/atom/movable/backup = get_spacemove_backup()
+	var/atom/movable/backup = get_spacemove_backup(movement_dir)
 	if(backup)
 		if(istype(backup) && movement_dir && !backup.anchored)
-			if(backup.newtonian_move(turn(movement_dir, 180)))
+			if(backup.newtonian_move(turn(movement_dir, 180), instant = TRUE)) //You're pushing off something movable, so it moves
 				step_silent = TRUE
 				if(occupant)
 					to_chat(occupant, span_info("You push off [backup] to propel yourself."))

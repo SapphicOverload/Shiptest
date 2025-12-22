@@ -87,7 +87,7 @@
 	AddComponent(/datum/component/ranged_attacks, calibre, null, firing_sound, spread = firing_spread)
 
 /mob/living/basic/hivebot/death(gibbed)
-	do_sparks(n = 3, c = TRUE, source = src)
+	do_sparks(number = 3, cardinal_only = TRUE, source = src)
 	return ..()
 
 /mob/living/basic/hivebot/ranged
@@ -246,7 +246,7 @@
 		balloon_alert(src, "recharging!")
 		return
 	fixable.atom_integrity = fixable.max_integrity
-	do_sparks(n = 3, c = TRUE, source = fixable)
+	do_sparks(number = 3, cardinal_only = TRUE, source = fixable)
 	to_chat(src, span_warning("Repairs complete!"))
 	COOLDOWN_START(src, repair_cooldown, 50 SECONDS)
 
@@ -258,7 +258,7 @@
 		balloon_alert(src, "recharging!")
 		return
 	bot_target.revive(TRUE)
-	do_sparks(n = 3, c = TRUE, source = bot_target)
+	do_sparks(number = 3, cardinal_only = TRUE, source = bot_target)
 	to_chat(src, span_warning("Repairs complete!"))
 	COOLDOWN_START(src, repair_cooldown, 50 SECONDS)
 
@@ -277,7 +277,7 @@
 		scrap.salvageable_parts = null
 	scrap.dismantle(src)
 	grow()
-	do_sparks(n = 3, c = TRUE, source = scrap)
+	do_sparks(number = 3, cardinal_only = TRUE, source = scrap)
 	to_chat(src, span_warning("Salvaging complete!"))
 	qdel(scrap)
 	COOLDOWN_START(src, salvage_cooldown, 50 SECONDS)

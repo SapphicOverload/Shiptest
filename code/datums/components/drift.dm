@@ -5,26 +5,36 @@
 	var/atom/inertia_last_loc
 	var/old_dir
 	var/datum/move_loop/move/drifting_loop
+	///Should we ignore the next glide rate input we get?
+	///This is to some extent a hack around the order of operations
+	///Around COMSIG_MOVELOOP_POSTPROCESS. I'm sorry lad
+	var/ignore_next_glide = FALSE
+	///Have we been delayed? IE: active, but not working right this second?
+	var/delayed = FALSE
 	var/block_inputs_until
 
-/datum/component/drift/Initialize(direction)
+/// Accepts three args. The direction to drift in, if the drift is instant or not, and if it's not instant, the delay on the start
+/datum/component/drift/Initialize(direction, instant = FALSE, start_delay = 0)
 	if(!ismovable(parent))
 		return COMPONENT_INCOMPATIBLE
 	. = ..()
 
+	var/flags = NONE
+	if(instant)
+		flags |= MOVEMENT_LOOP_START_FAST
 	var/atom/movable/movable_parent = parent
-	drifting_loop = SSmove_manager.move(moving = parent, direction = direction, delay = movable_parent.inertia_move_delay, subsystem = SSspacedrift, priority = MOVEMENT_SPACE_PRIORITY)
+	drifting_loop = SSmove_manager.move(moving = parent, direction = direction, delay = movable_parent.inertia_move_delay, subsystem = SSspacedrift, priority = MOVEMENT_SPACE_PRIORITY, flags = flags)
 
 	if(!drifting_loop) //Really want to qdel here but can't
 		return COMPONENT_INCOMPATIBLE
-
-	RegisterSignal(movable_parent, COMSIG_MOVABLE_NEWTONIAN_MOVE, PROC_REF(newtonian_impulse))
 
 	RegisterSignal(drifting_loop, COMSIG_MOVELOOP_START, PROC_REF(drifting_start))
 	RegisterSignal(drifting_loop, COMSIG_MOVELOOP_STOP, PROC_REF(drifting_stop))
 	RegisterSignal(drifting_loop, COMSIG_MOVELOOP_PREPROCESS_CHECK, PROC_REF(before_move))
 	RegisterSignal(drifting_loop, COMSIG_MOVELOOP_POSTPROCESS, PROC_REF(after_move))
 	RegisterSignal(drifting_loop, COMSIG_QDELETING, PROC_REF(loop_death))
+	if(drifting_loop.running)
+		drifting_start(drifting_loop) // There's a good chance it'll autostart, gotta catch that
 
 /datum/component/drift/Destroy()
 	inertia_last_loc = null
@@ -49,6 +59,7 @@
 	var/atom/movable/movable_parent = parent
 	inertia_last_loc = movable_parent.loc
 	RegisterSignal(movable_parent, COMSIG_MOVABLE_MOVED, PROC_REF(handle_move))
+	RegisterSignal(movable_parent, COMSIG_MOVABLE_NEWTONIAN_MOVE, PROC_REF(newtonian_impulse))
 
 /datum/component/drift/proc/drifting_stop()
 	SIGNAL_HANDLER

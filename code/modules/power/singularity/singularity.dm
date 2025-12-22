@@ -28,6 +28,13 @@
 	var/last_warning
 	var/consumedSupermatter = 0 //If the singularity has eaten a supermatter shard and can go to stage six
 	var/drifting_dir = 0 // Chosen direction to drift in
+
+	/// List of turfs we have yet to consume, but need to
+	var/list/turf/turfs_to_consume = list()
+
+	/// The time that has elapsed since our last move/eat call
+	var/time_since_last_eat = 0
+
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF | FREEZE_PROOF | LANDING_PROOF | HYPERSPACE_PROOF
 	obj_flags = CAN_BE_HIT | DANGEROUS_POSSESSION
 
@@ -37,7 +44,7 @@
 
 	src.energy = starting_energy
 	. = ..()
-	START_PROCESSING(SSobj, src)
+	START_PROCESSING(SSsinguloprocess, src)
 	SSpoints_of_interest.make_point_of_interest(src)
 	GLOB.singularities |= src
 	for(var/obj/machinery/power/singularity_beacon/singubeacon in GLOB.machines)
@@ -52,7 +59,7 @@
 	AddElement(/datum/element/connect_loc, loc_connections)
 
 /obj/singularity/Destroy()
-	STOP_PROCESSING(SSobj, src)
+	STOP_PROCESSING(SSsinguloprocess, src)
 	SSpoints_of_interest.remove_point_of_interest(src)
 	GLOB.singularities.Remove(src)
 	return ..()
@@ -144,19 +151,24 @@
 /obj/singularity/Bumped(atom/movable/AM)
 	consume(AM)
 
-
 /obj/singularity/process(seconds_per_tick)
-	if(current_size >= STAGE_TWO)
-		move()
-		radiation_pulse(src, min(5000, (energy*4.5)+1000), RAD_DISTANCE_COEFFICIENT*0.5)
-		if(prob(event_chance))//Chance for it to run a special event TODO:Come up with one or two more that fit
-			event()
-	eat()
+	// We want to move and eat once a second, but want to process our turf consume queue the rest of the time
+	time_since_last_eat += seconds_per_tick
+	digest()
+	if(TICK_CHECK)
+		return
+	if(time_since_last_eat > 1) // Delta time is in seconds for "reasons"
+		time_since_last_eat = 0
+		if(current_size >= STAGE_TWO)
+			move()
+			radiation_pulse(src, min(5000, (energy*4.5)+1000), RAD_DISTANCE_COEFFICIENT*0.5)
+			if(prob(event_chance))//Chance for it to run a special event TODO:Come up with one or two more that fit
+				event()
+		eat()
+		digest() // Try and process as much as you can with the time we have left
+
 	dissipate()
 	check_energy()
-
-	return
-
 
 /obj/singularity/attack_ai() //to prevent ais from gibbing themselves when they click on one.
 	return
@@ -286,24 +298,47 @@
 
 
 /obj/singularity/proc/eat()
-	for(var/tile in spiral_range_turfs(grav_pull, src))
-		var/turf/T = tile
-		if(!T || !isturf(loc))
-			continue
-		if(get_dist(T, src) > consume_range)
-			T.singularity_pull(src, current_size)
-		else
-			consume(T)
-		for(var/thing in T)
-			if(isturf(loc) && thing != src)
-				var/atom/movable/X = thing
-				if(get_dist(X, src) > consume_range)
-					X.singularity_pull(src, current_size)
-				else
-					consume(X)
-			CHECK_TICK
-	return
+	turfs_to_consume |= spiral_range_turfs(grav_pull, src)
 
+/obj/singularity/proc/digest()
+	if(!isturf(loc))
+		return
+
+	// We use a static index for this to prevent infinite runtimes.
+	// Maybe a might overengineered, but let's be safe yes?
+	var/static/cached_index = 0
+	if(cached_index)
+		var/old_index = cached_index
+		cached_index = 0 // Prevents infinite Cut() runtimes. Sorry MSO
+		turfs_to_consume.Cut(1, old_index + 1)
+
+	for (cached_index in 1 to length(turfs_to_consume))
+		var/turf/tile = turfs_to_consume[cached_index]
+		var/dist_to_tile = get_dist(tile, src)
+
+		if(grav_pull < dist_to_tile) //If we've exited the singulo's range already, just skip us
+			continue
+
+		var/in_consume_range = (dist_to_tile <= consume_range)
+		if (in_consume_range)
+			consume(src, tile)
+		else
+			tile.singularity_pull(src, current_size)
+			for(var/atom/movable/thing as anything in tile)
+				if(thing == src)
+					continue
+				if (in_consume_range)
+					consume(src, thing)
+				else
+					thing.singularity_pull(src, current_size)
+
+		if(TICK_CHECK) //Yes this means the singulo can eat all of its host subsystem's cpu, but like it's the singulo, and it was gonna do that anyway
+			turfs_to_consume.Cut(1, cached_index + 1)
+			cached_index = 0
+			return
+
+	turfs_to_consume.Cut()
+	cached_index = 0
 
 /obj/singularity/proc/consume(atom/A)
 	var/gain = A.singularity_act(current_size, src)
