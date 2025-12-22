@@ -386,12 +386,6 @@
 /// from base of atom/movable/Process_Spacemove(): (movement_dir, continuous_move)
 #define COMSIG_MOVABLE_SPACEMOVE "spacemove"
 	#define COMSIG_MOVABLE_STOP_SPACEMOVE (1<<0)
-	///from datum/component/drift/apply_initial_visuals(): ()
-#define COMSIG_MOVABLE_DRIFT_VISUAL_ATTEMPT "movable_drift_visual_attempt"
-	#define DRIFT_VISUAL_FAILED (1<<0)
-	///from datum/component/drift/allow_final_movement(): ()
-#define COMSIG_MOVABLE_DRIFT_BLOCK_INPUT "movable_drift_block_input"
-	#define DRIFT_ALLOW_INPUT (1<<0)
 
 /// Sent from /obj/item/radio/talk_into(): (obj/item/radio/used_radio)
 #define COMSIG_MOVABLE_USING_RADIO "movable_radio"

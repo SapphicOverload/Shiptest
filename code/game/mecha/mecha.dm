@@ -572,18 +572,22 @@
 		occupant_message(span_warning("Air port connection has been severed!"))
 		log_message("Lost connection to gas port.", LOG_MECHA)
 
-/obj/mecha/Process_Spacemove(movement_dir = 0)
+// Do whatever you do to mobs to these fuckers too
+/obj/mecha/Process_Spacemove(movement_dir = 0, continuous_move = FALSE)
 	. = ..()
 	if(.)
 		return TRUE
 
-	var/atom/movable/backup = get_spacemove_backup(movement_dir)
+	var/atom/movable/backup = get_spacemove_backup(movement_dir, continuous_move)
 	if(backup)
-		if(istype(backup) && movement_dir && !backup.anchored)
-			if(backup.newtonian_move(turn(movement_dir, 180), instant = TRUE)) //You're pushing off something movable, so it moves
-				step_silent = TRUE
-				if(occupant)
-					to_chat(occupant, span_info("You push off [backup] to propel yourself."))
+		if(!istype(backup) || !movement_dir || backup.anchored || continuous_move) //get_spacemove_backup() already checks if a returned turf is solid, so we can just go
+			return TRUE
+		last_pushoff = world.time
+		if(backup.newtonian_move(turn(movement_dir, 180), instant = TRUE))
+			backup.last_pushoff = world.time
+			step_silent = TRUE
+			if(occupant)
+				to_chat(occupant, "[icon2html(src, occupant)][span_info("The [src] push off [backup] to propel yourself.")]")
 		return TRUE
 
 	if(can_move <= world.time && active_thrusters && movement_dir && active_thrusters.thrust(movement_dir))

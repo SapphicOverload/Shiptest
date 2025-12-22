@@ -82,7 +82,8 @@
 	if(isturf(hard_target_override))
 		hard_target = hard_target_override
 
-/obj/effect/portal/newtonian_move(direction, instant = FALSE) // Prevents portals spawned by jaunter/handtele from floating into space when relocated to an adjacent tile.
+// Prevents portals spawned by jaunter/handtele from floating into space when relocated to an adjacent tile.
+/obj/effect/portal/newtonian_move(direction, instant = FALSE, start_delay = 0)
 	return TRUE
 
 /obj/effect/portal/singularity_pull()

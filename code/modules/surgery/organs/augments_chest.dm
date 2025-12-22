@@ -128,94 +128,102 @@
 	actions_types = list(/datum/action/item_action/organ_action/toggle)
 	w_class = WEIGHT_CLASS_NORMAL
 	var/on = FALSE
-	var/datum/effect_system/trail_follow/ion/ion_trail
+	var/datum/callback/get_mover
+	var/datum/callback/check_on_move
 
-/obj/item/organ/cyberimp/chest/thrusters/Insert(mob/living/carbon/M, special = 0)
+/obj/item/organ/cyberimp/chest/thrusters/Initialize(mapload)
 	. = ..()
-	if(!ion_trail)
-		ion_trail = new
-		ion_trail.auto_process = FALSE
-	ion_trail.set_up(M)
+	get_mover = CALLBACK(src, PROC_REF(get_user))
+	check_on_move = CALLBACK(src, PROC_REF(allow_thrust), 0.01)
+	refresh_jetpack()
+
+/obj/item/organ/cyberimp/chest/thrusters/Destroy()
+	get_mover = null
+	check_on_move = null
+	return ..()
+
+/obj/item/organ/cyberimp/chest/thrusters/proc/refresh_jetpack()
+	AddComponent(/datum/component/jetpack, FALSE, COMSIG_THRUSTER_ACTIVATED, COMSIG_THRUSTER_DEACTIVATED, THRUSTER_ACTIVATION_FAILED, get_mover, check_on_move, /datum/effect_system/trail_follow/ion)
 
 /obj/item/organ/cyberimp/chest/thrusters/Remove(mob/living/carbon/M, special = 0)
 	if(on)
-		toggle(silent = TRUE)
+		deactivate(silent = TRUE)
 	..()
 
 /obj/item/organ/cyberimp/chest/thrusters/ui_action_click()
 	toggle()
 
 /obj/item/organ/cyberimp/chest/thrusters/proc/toggle(silent = FALSE)
-	if(!on)
-		if((organ_flags & ORGAN_FAILING))
-			if(!silent)
-				to_chat(owner, span_warning("Your thrusters set seems to be broken!"))
-			return 0
-		if(allow_thrust(0.01))
-			on = TRUE
-			ion_trail.start()
-			RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(move_react))
-			owner.add_movespeed_modifier(/datum/movespeed_modifier/jetpack/cybernetic)
-			RegisterSignal(owner, COMSIG_MOVABLE_PRE_MOVE, PROC_REF(pre_move_react))
-			if(!silent)
-				to_chat(owner, span_notice("You turn your thrusters set on."))
+	if(on)
+		deactivate()
 	else
-		ion_trail.stop()
-		UnregisterSignal(owner, COMSIG_MOVABLE_MOVED)
-		owner.remove_movespeed_modifier(/datum/movespeed_modifier/jetpack/cybernetic)
-		UnregisterSignal(owner, COMSIG_MOVABLE_PRE_MOVE)
+		activate()
+	update_appearance()
+
+/obj/item/organ/cyberimp/chest/thrusters/proc/activate(silent = FALSE)
+	if(on)
+		return
+	if(organ_flags & ORGAN_FAILING)
 		if(!silent)
-			to_chat(owner, span_notice("You turn your thrusters set off."))
-		on = FALSE
+			to_chat(owner, span_warning("Your thrusters set seems to be broken!"))
+		return
+	if(SEND_SIGNAL(src, COMSIG_THRUSTER_ACTIVATED) & THRUSTER_ACTIVATION_FAILED)
+		return
+
+	on = TRUE
+	owner.add_movespeed_modifier(/datum/movespeed_modifier/jetpack/cybernetic)
+	if(!silent)
+		to_chat(owner, span_notice("You turn your thrusters set on."))
+	update_appearance()
+
+/obj/item/organ/cyberimp/chest/thrusters/proc/deactivate(silent = FALSE)
+	if(!on)
+		return
+	SEND_SIGNAL(src, COMSIG_THRUSTER_DEACTIVATED)
+	owner.remove_movespeed_modifier(/datum/movespeed_modifier/jetpack/cybernetic)
+	if(!silent)
+		to_chat(owner, span_notice("You turn your thrusters set off."))
+	on = FALSE
 	update_appearance()
 
 /obj/item/organ/cyberimp/chest/thrusters/update_icon_state()
 	icon_state = "[base_icon_state][on ? "-on" : null]"
 	return ..()
 
-/obj/item/organ/cyberimp/chest/thrusters/proc/move_react()
-	if(!on)//If jet dont work, it dont work
-		return
-	if(!owner)//Don't allow jet self using
-		return
-	if(!isturf(owner.loc))//You can't use jet in nowhere or in mecha/closet
-		return
-	if(!(owner.movement_type & FLOATING) || owner.buckled)//You don't want use jet in gravity or while buckled.
-		return
-	if(owner.pulledby)//You don't must use jet if someone pull you
-		return
-	if(owner.throwing)//You don't must use jet if you thrown
-		return
-	if(length(owner.client.keys_held & owner.client.movement_keys))//You use jet when press keys. yes.
-		allow_thrust(0.01)
-
-/obj/item/organ/cyberimp/chest/thrusters/proc/pre_move_react()
-	ion_trail.oldposition = get_turf(owner)
-
-/obj/item/organ/cyberimp/chest/thrusters/proc/allow_thrust(num)
+/obj/item/organ/cyberimp/chest/thrusters/proc/allow_thrust(num, use_fuel = TRUE)
 	if(!owner)
 		return FALSE
 
-	var/turf/T = get_turf(owner)
-	if(!T) // No more runtimes from being stuck in nullspace.
+	var/turf/owner_turf = get_turf(owner)
+	if(!owner_turf) // No more runtimes from being stuck in nullspace.
 		return FALSE
 
 	// Priority 1: use air from environment.
-	var/datum/gas_mixture/environment = T.return_air()
+	var/datum/gas_mixture/environment = owner_turf.return_air()
 	if(environment && environment.return_pressure() > 30)
-		ion_trail.generate_effect()
 		return TRUE
 
 	// Priority 2: use plasma from internal plasma storage.
 	// (just in case someone would ever use this implant system to make cyber-alien ops with jetpacks and taser arms)
-	if(owner.getPlasma() >= num*100)
-		owner.adjustPlasma(-num*100)
-		ion_trail.generate_effect()
+	if(owner.getPlasma() >= num * 100)
+		if(use_fuel)
+			owner.adjustPlasma(-num * 100)
 		return TRUE
 
 	// Priority 3: use internals tank.
-	if(owner.internal?.air_contents?.total_moles() >= num)
-		T.assume_air_moles(owner.internal.air_contents, num)
+	var/datum/gas_mixture/internal_mix = owner.internal?.return_air()
+	if(internal_mix && internal_mix.total_moles() > num)
+		if(!use_fuel)
+			return TRUE
+		var/datum/gas_mixture/removed = internal_mix.remove(num)
+		if(removed.total_moles() > 0.005)
+			owner_turf.assume_air(removed)
+			return TRUE
+		else
+			owner_turf.assume_air(removed)
 
-	toggle(silent = TRUE)
+	deactivate(silent = TRUE)
 	return FALSE
+
+/obj/item/organ/cyberimp/chest/thrusters/proc/get_user()
+	return owner

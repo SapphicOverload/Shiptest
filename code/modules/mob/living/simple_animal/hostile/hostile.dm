@@ -310,7 +310,7 @@
 		if(charger && (target_distance > minimum_distance) && (target_distance <= charge_distance))//Attempt to close the distance with a charge.
 			enter_charge(target)
 			return TRUE
-		if(!Process_Spacemove()) //Drifting
+		if(!Process_Spacemove(0)) //Drifting
 			SSmove_manager.stop_looping(src)
 			return 1
 		if(retreat_distance != null) //If we have a retreat distance, check if we need to run from our target

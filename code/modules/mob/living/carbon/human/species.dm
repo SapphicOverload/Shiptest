@@ -2154,7 +2154,7 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 //Space Move//
 //////////////
 
-/datum/species/proc/space_move(mob/living/carbon/human/H)
+/datum/species/proc/space_move(mob/living/carbon/human/H, movement_dir = 0, continuous_move = FALSE)
 	if(H.movement_type & FLYING)
 		return TRUE
 	return FALSE

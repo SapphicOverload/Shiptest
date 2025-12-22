@@ -86,7 +86,7 @@
 		H.reagents.remove_reagent(chem.type, REAGENTS_METABOLISM)
 	return ..()
 
-/datum/species/space_move(mob/living/carbon/human/H)
+/datum/species/space_move(mob/living/carbon/human/H, movement_dir = 0, continuous_move = FALSE)
 	. = ..()
 	if(H.loc && !isspaceturf(H.loc) && H.getorganslot(ORGAN_SLOT_WINGS) && !flying_species) //"flying_species" is exclusive to the potion of flight, which has its flying mechanics. If they want to fly they can use that instead
 		var/datum/gas_mixture/current = H.loc.return_air()

@@ -12,17 +12,22 @@
 	var/on = FALSE
 	var/stabilizers = FALSE
 	var/full_speed = TRUE // Whether damage slowdown will affect the jetpack
-	var/datum/effect_system/trail_follow/ion/ion_trail
+	var/datum/callback/get_mover
+	var/datum/callback/check_on_move
 
 /obj/item/tank/jetpack/Initialize()
 	. = ..()
-	ion_trail = new
-	ion_trail.auto_process = FALSE
-	ion_trail.set_up(src)
+	get_mover = CALLBACK(src, PROC_REF(get_user))
+	check_on_move = CALLBACK(src, PROC_REF(allow_thrust), 0.01)
+	refresh_jetpack()
 
 /obj/item/tank/jetpack/Destroy()
-	QDEL_NULL(ion_trail)
+	get_mover = null
+	check_on_move = null
 	return ..()
+
+/obj/item/tank/jetpack/proc/refresh_jetpack()
+	AddComponent(/datum/component/jetpack, stabilizers, COMSIG_JETPACK_ACTIVATED, COMSIG_JETPACK_DEACTIVATED, JETPACK_ACTIVATION_FAILED, get_mover, check_on_move, /datum/effect_system/trail_follow/ion)
 
 /obj/item/tank/jetpack/populate_gas()
 	if(gas_type)
@@ -33,11 +38,16 @@
 		cycle(user)
 	else if(istype(action, /datum/action/item_action/jetpack_stabilization))
 		if(on)
-			stabilizers = !stabilizers
+			set_stabilizers(!stabilizers)
 			to_chat(user, span_notice("You turn the jetpack stabilization [stabilizers ? "on" : "off"]."))
 	else
 		toggle_internals(user)
 
+/obj/item/tank/jetpack/proc/set_stabilizers(new_stabilizers)
+	if(new_stabilizers == stabilizers)
+		return
+	stabilizers = new_stabilizers
+	refresh_jetpack()
 
 /obj/item/tank/jetpack/proc/cycle(mob/living/user)
 	if(user.incapacitated())
@@ -55,53 +65,44 @@
 
 
 /obj/item/tank/jetpack/proc/turn_on(mob/living/user)
-	if(!allow_thrust(0.01, user))
+	if(SEND_SIGNAL(src, COMSIG_JETPACK_ACTIVATED) & JETPACK_ACTIVATION_FAILED)
 		return
 	on = TRUE
 	icon_state = "[initial(icon_state)]-on"
-	ion_trail.start()
-	RegisterSignal(user, COMSIG_MOVABLE_MOVED, PROC_REF(move_react))
-	RegisterSignal(user, COMSIG_MOVABLE_PRE_MOVE, PROC_REF(pre_move_react))
 	if(full_speed)
 		user.add_movespeed_mod_immunities(type, /datum/movespeed_modifier/damage_slowdown_flying)
 
 /obj/item/tank/jetpack/proc/turn_off(mob/living/user)
+	SEND_SIGNAL(src, COMSIG_JETPACK_DEACTIVATED)
 	on = FALSE
-	stabilizers = FALSE
+	set_stabilizers(FALSE)
 	icon_state = initial(icon_state)
-	ion_trail.stop()
-	UnregisterSignal(user, COMSIG_MOVABLE_MOVED)
-	UnregisterSignal(user, COMSIG_MOVABLE_PRE_MOVE)
-	user.remove_movespeed_mod_immunities(type, /datum/movespeed_modifier/damage_slowdown_flying)
+	if(user)
+		user.remove_movespeed_mod_immunities(type, /datum/movespeed_modifier/damage_slowdown_flying)
 
-/obj/item/tank/jetpack/proc/move_react(mob/living/user)
-	if(!on)//If jet dont work, it dont work
-		return
-	if(!user)//Don't allow jet self using
-		return
-	if(!isturf(user.loc))//You can't use jet in nowhere or from mecha/closet
-		return
-	if(!(user.movement_type & FLOATING) || user.buckled)//You don't want use jet in gravity or while buckled.
-		return
-	if(user.pulledby)//You don't must use jet if someone pull you
-		return
-	if(user.throwing)//You don't must use jet if you thrown
-		return
-	if(length(user.client.keys_held & user.client.movement_keys))//You use jet when press keys. yes.
-		allow_thrust(0.01, user)
-
-/obj/item/tank/jetpack/proc/pre_move_react(mob/living/user)
-	ion_trail.oldposition = get_turf(src)
-
-/obj/item/tank/jetpack/proc/allow_thrust(num, mob/living/user)
+/obj/item/tank/jetpack/proc/allow_thrust(num, use_fuel = TRUE)
 	if((num < 0.005 || air_contents.total_moles() < num))
-		turn_off(user)
-		return
+		turn_off(get_user())
+		return FALSE
 
-	assume_air_moles(air_contents, num)
+	// We've got the gas, it's chill
+	if(!use_fuel)
+		return TRUE
 
+	var/datum/gas_mixture/removed = remove_air(num)
+	if(removed.total_moles() < 0.005)
+		turn_off(get_user())
+		return FALSE
+
+	var/turf/T = get_turf(src)
+	T.assume_air(removed)
 	return TRUE
 
+// Gives the jetpack component the user it expects
+/obj/item/tank/jetpack/proc/get_user()
+	if(!ismob(loc))
+		return null
+	return loc
 
 /obj/item/tank/jetpack/improvised
 	name = "improvised jetpack"
@@ -112,7 +113,10 @@
 	gas_type = null //it starts empty
 	full_speed = FALSE // affected by damage slowdown
 
-/obj/item/tank/jetpack/improvised/allow_thrust(num, mob/living/user)
+/obj/item/tank/jetpack/improvised/allow_thrust(num, use_fuel = TRUE)
+	var/mob/user = get_user()
+	if(!user)
+		return FALSE
 	if(rand(0,250) == 0)
 		to_chat(user, span_notice("You feel your jetpack's engines cut out."))
 		turn_off(user)
@@ -247,23 +251,3 @@
 		turn_off(cur_user)
 		return
 	..()
-
-
-//Return a jetpack that the mob can use
-//Back worn jetpacks, hardsuit internal packs, and so on.
-//Used in Process_Spacemove() and wherever you want to check for/get a jetpack
-
-/mob/proc/get_jetpack()
-	return
-
-/mob/living/carbon/get_jetpack()
-	var/obj/item/tank/jetpack/J = back
-	if(istype(J))
-		return J
-
-/mob/living/carbon/human/get_jetpack()
-	var/obj/item/tank/jetpack/J = ..()
-	if(!istype(J) && istype(wear_suit, /obj/item/clothing/suit/space/hardsuit))
-		var/obj/item/clothing/suit/space/hardsuit/C = wear_suit
-		J = C.jetpack
-	return J
