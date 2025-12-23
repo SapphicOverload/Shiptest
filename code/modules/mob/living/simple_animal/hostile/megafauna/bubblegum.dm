@@ -50,6 +50,7 @@ Difficulty: Hard
 	move_to_delay = 5
 	retreat_distance = 5
 	minimum_distance = 5
+	charge_distance = INFINITY
 	rapid_melee = 8 // every 1/4 second
 	melee_queue_distance = 20 // as far as possible really, need this because of blood warp
 	ranged = TRUE
@@ -161,6 +162,7 @@ Difficulty: Hard
 			SLEEP_CHECK_DEATH(6)
 	SetRecoveryTime(20)
 
+// TODO - port mob actions and kill this abomination of code with a really big hammer
 /mob/living/simple_animal/hostile/megafauna/bubblegum/proc/charge(atom/chargeat = target, delay = 3, chargepast = 2)
 	if(!chargeat)
 		return
@@ -168,25 +170,35 @@ Difficulty: Hard
 	if(!chargeturf)
 		return
 	var/dir = get_dir(src, chargeturf)
-	var/turf/T = get_ranged_target_turf(chargeturf, dir, chargepast)
-	if(!T)
+	var/turf/target_turf = get_ranged_target_turf(chargeturf, dir, chargepast)
+	if(!target_turf)
 		return
-	new /obj/effect/temp_visual/dragon_swoop/bubblegum(T)
+	new /obj/effect/temp_visual/dragon_swoop/bubblegum(target_turf)
+	SSmove_manager.stop_looping(src)
 	charging = TRUE
 	revving_charge = TRUE
 	DestroySurroundings()
-	walk(src, 0)
 	setDir(dir)
 	var/obj/effect/temp_visual/decoy/D = new /obj/effect/temp_visual/decoy(loc,src)
 	animate(D, alpha = 0, color = "#FF0000", transform = matrix()*2, time = 3)
 	SLEEP_CHECK_DEATH(delay)
 	revving_charge = FALSE
-	var/movespeed = 0.7
-	walk_towards(src, T, movespeed)
-	SLEEP_CHECK_DEATH(get_dist(src, T) * movespeed)
-	walk(src, 0) // cancel the movement
-	try_bloodattack()
+	var/time_to_hit = handle_charge_target(target_turf)
+	if(time_to_hit)
+		sleep(time_to_hit)
+
+/mob/living/simple_animal/hostile/megafauna/bubblegum/can_charge_target(atom/target)
+	return TRUE // FUCK IT
+
+/mob/living/simple_animal/hostile/megafauna/bubblegum/on_charge_impact(atom/hit_atom)
+	return // WE BALL
+
+/mob/living/simple_animal/hostile/megafauna/bubblegum/charge_end(datum/move_loop/has_target/source)
+	. = ..()
 	charging = FALSE
+	if(stat == DEAD)
+		return
+	try_bloodattack()
 
 /mob/living/simple_animal/hostile/megafauna/bubblegum/proc/get_mobs_on_blood()
 	var/list/targets = ListTargets()
@@ -400,7 +412,7 @@ Difficulty: Hard
 	return TRUE
 
 /mob/living/simple_animal/hostile/megafauna/bubblegum/do_attack_animation(atom/A, visual_effect_icon)
-	if(!charging)
+	if(!charge_state)
 		..()
 
 /mob/living/simple_animal/hostile/megafauna/bubblegum/AttackingTarget()
@@ -439,7 +451,7 @@ Difficulty: Hard
 	update_approach()
 	if(revving_charge)
 		return FALSE
-	if(charging)
+	if(charge_state)
 		new /obj/effect/temp_visual/decoy/fading(loc,src)
 		DestroySurroundings()
 	..()
@@ -447,13 +459,13 @@ Difficulty: Hard
 /mob/living/simple_animal/hostile/megafauna/bubblegum/Moved(atom/OldLoc, Dir, Forced = FALSE)
 	if(Dir)
 		new /obj/effect/decal/cleanable/blood/bubblegum(src.loc)
-	if(charging)
+	if(charge_state)
 		DestroySurroundings()
 	playsound(src, 'sound/effects/meteorimpact.ogg', 200, TRUE, 2, TRUE)
 	return ..()
 
 /mob/living/simple_animal/hostile/megafauna/bubblegum/Bump(atom/A)
-	if(charging)
+	if(charge_state)
 		if(isturf(A) || isobj(A) && A.density)
 			if(isobj(A))
 				SSexplosions.medobj += A

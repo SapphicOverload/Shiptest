@@ -38,52 +38,27 @@
 	knockdown_time = 1 SECONDS
 	robust_searching = TRUE
 	footstep_type = FOOTSTEP_MOB_CLAW
-	var/charging = FALSE
-	var/revving_charge = FALSE
-	var/charge_range = 10
+	charger = TRUE
+	charge_delay = 1 SECONDS
+	charge_distance = 10
 	/// Message for when the wolf decides to start running away
 	var/retreat_message_said = FALSE
-
-/mob/living/simple_animal/hostile/asteroid/wolf/proc/charge(atom/chargeat = target, delay = 10, chargepast = 2)
-	if(!chargeat)
-		return
-	var/chargeturf = get_turf(chargeat)
-	if(!chargeturf)
-		return
-	var/dir = get_dir(src, chargeturf)
-	var/turf/T = get_ranged_target_turf(chargeturf, dir, chargepast)
-	if(!T)
-		return
-	charging = TRUE
-	revving_charge = TRUE
-	walk(src, 0)
-	setDir(dir)
-	var/obj/effect/temp_visual/decoy/D = new /obj/effect/temp_visual/decoy(loc,src)
-	animate(D, alpha = 0, color = "#5a5858", transform = matrix()*2, time = 3)
-	SLEEP_CHECK_DEATH(delay)
-	revving_charge = FALSE
-	var/movespeed = 0.7
-	walk_towards(src, T, movespeed)
-	SLEEP_CHECK_DEATH(get_dist(src, T) * movespeed)
-	walk(src, 0) // cancel the movement
-	charging = FALSE
 
 /mob/living/simple_animal/hostile/asteroid/wolf/OpenFire()
 	var/tturf = get_turf(target)
 	var/dist = get_dist(src, target)
 	if(!isturf(tturf) || !isliving(target))
 		return
-	else if(dist <= charge_range)		//Screen range check, so you can't get charged offscreen
-		charge()
+	else if(charger && dist <= charge_distance) //Screen range check, so you can't get charged offscreen
+		enter_charge(target)
 
 /mob/living/simple_animal/hostile/asteroid/wolf/Bump(atom/A)
 	. = ..()
-	if(charging && isclosedturf(A))				// We slammed into a wall while charging
+	if(charge_state && isclosedturf(A))				// We slammed into a wall while charging
 		wall_slam(A)
 
 /mob/living/simple_animal/hostile/asteroid/wolf/proc/wall_slam(atom/A)
-	charging = FALSE
-	walk(src, 0)		// Cancel the movement
+	SSmove_manager.stop_looping(src) // Cancel the movement
 	if(ismineralturf(A))
 		var/turf/closed/mineral/M = A
 		if(M.mineralAmt < 7)

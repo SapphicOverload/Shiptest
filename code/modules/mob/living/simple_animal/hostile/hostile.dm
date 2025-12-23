@@ -69,8 +69,14 @@
 	var/charger = FALSE
 	///Tracks if the target is actively charging.
 	var/charge_state = FALSE
+	///Whether the last charge has failed due to an obstruction, and the mob should avoid trying again without moving first.
+	var/charge_failed = FALSE
 	///In a charge, how many tiles will the charger travel?
 	var/charge_distance = 3
+	///Delay between movements during a charge.
+	var/charge_speed = 0.5
+	///Delay before the charge begins.
+	var/charge_delay = 1.5 SECONDS
 	///How often can the charging mob actually charge? Effects the cooldown between charges.
 	var/charge_frequency = 6 SECONDS
 	///If the mob is charging, how long will it stun it's target on success, and itself on failure?
@@ -473,8 +479,12 @@
 /mob/living/simple_animal/hostile/Move(atom/newloc, dir , step_x , step_y)
 	if(dodging && approaching_target && prob(dodge_prob) && moving_diagonally == 0 && isturf(loc) && isturf(newloc))
 		return dodge(newloc,dir)
-	else
-		return ..()
+	return ..()
+
+/mob/living/simple_animal/hostile/Moved(atom/OldLoc, Dir)
+	. = ..()
+	if(loc != OldLoc)
+		charge_failed = FALSE
 
 /mob/living/simple_animal/hostile/proc/dodge(moving_to,move_direction)
 	//Assuming we move towards the target we want to swerve toward them to get closer
@@ -629,13 +639,16 @@
 /mob/living/simple_animal/hostile/proc/enter_charge(atom/target)
 	if(charge_state || !(COOLDOWN_FINISHED(src, charge_cooldown)))
 		return FALSE
+	if(charge_failed)
+		return FALSE
 	if(!can_charge_target(target))
 		return FALSE
 	Shake(15, 15, 1 SECONDS)
 	var/obj/effect/temp_visual/decoy/new_decoy = new /obj/effect/temp_visual/decoy(loc,src)
 	animate(new_decoy, alpha = 0, color = "#5a5858", transform = matrix()*2, time = 3)
 	target.visible_message(span_danger("[src] prepares to pounce!"))
-	addtimer(CALLBACK(src, PROC_REF(handle_charge_target), target), 1.5 SECONDS, TIMER_STOPPABLE)
+	addtimer(CALLBACK(src, PROC_REF(handle_charge_target), target), charge_delay, TIMER_STOPPABLE)
+	return TRUE
 
 /**
  * Proc that checks if the mob can charge attack.
@@ -651,45 +664,73 @@
 /mob/living/simple_animal/hostile/proc/handle_charge_target(atom/target)
 	if(!can_charge_target(target))
 		return FALSE
-	charge_state = TRUE
-	throw_at(target, charge_distance, 1, src, FALSE, TRUE, callback = CALLBACK(src, PROC_REF(charge_end)))
-	COOLDOWN_START(src, charge_cooldown, charge_frequency)
-	return TRUE
+	var/turf/target_turf = get_turf(target)
+	if(!target_turf)
+		return FALSE
 
-/**
- * Proc that handles a charge attack after it's concluded.
- */
-/mob/living/simple_animal/hostile/proc/charge_end()
+	var/time_to_hit = min(get_dist(src, target), charge_distance) * charge_speed
+
+	var/datum/move_loop/new_loop = SSmove_manager.home_onto(src, target, delay = charge_speed, timeout = time_to_hit, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
+	if(!new_loop)
+		return FALSE
+	COOLDOWN_START(src, charge_cooldown, charge_frequency + time_to_hit)
+
+	RegisterSignal(new_loop, COMSIG_MOVELOOP_PREPROCESS_CHECK, PROC_REF(pre_move))
+	RegisterSignal(new_loop, COMSIG_MOVELOOP_POSTPROCESS, PROC_REF(post_move))
+	RegisterSignal(new_loop, COMSIG_QDELETING, PROC_REF(charge_end))
+	RegisterSignal(new_loop.moving, COMSIG_MOB_STATCHANGE, PROC_REF(stat_changed)) // i have committed an atrocity in the name of laziness
+	return time_to_hit
+
+/mob/living/simple_animal/hostile/proc/pre_move(datum/move_loop/source)
+	SIGNAL_HANDLER
+	// If you sleep in Move() you deserve what's coming to you
+	charge_state = TRUE
+
+/mob/living/simple_animal/hostile/proc/post_move(datum/move_loop/source, success)
+	SIGNAL_HANDLER
 	charge_state = FALSE
+	if(!success)
+		charge_failed = TRUE
+
+/mob/living/simple_animal/hostile/proc/charge_end(datum/move_loop/source)
+	SIGNAL_HANDLER
+	var/atom/movable/charger = source.moving
+	UnregisterSignal(charger, COMSIG_MOB_STATCHANGE)
+	UnregisterSignal(source, list(COMSIG_MOVELOOP_PREPROCESS_CHECK, COMSIG_MOVELOOP_POSTPROCESS, COMSIG_QDELETING))
+	charge_state = FALSE
+
+/mob/living/simple_animal/hostile/proc/stat_changed(mob/source, new_stat, old_stat)
+	SIGNAL_HANDLER
+	if(new_stat == DEAD)
+		SSmove_manager.stop_looping(source) //This will cause the loop to qdel, triggering an end to our charging
 
 /**
  * Proc that handles the charge impact of the charging mob.
  */
-/mob/living/simple_animal/hostile/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+/mob/living/simple_animal/hostile/Bump(atom/hit_atom)
+	. = ..()
 	if(!charge_state)
-		return ..()
+		return
+	on_charge_impact(hit_atom)
 
-	if(hit_atom)
-		if(isliving(hit_atom))
-			var/mob/living/L = hit_atom
-			var/blocked = FALSE
-			if(ishuman(hit_atom))
-				var/mob/living/carbon/human/H = hit_atom
-				if(H.check_shields(src, 0, "the [name]", attack_type = LEAP_ATTACK))
-					blocked = TRUE
-			if(!blocked)
-				L.visible_message((span_danger("[src] pounces onto[L]!")), (span_userdanger("[src] pounces on you!")))
-				L.Knockdown(knockdown_time)
-			else
-				Stun((knockdown_time * 2), ignore_canstun = TRUE)
-			charge_end()
-		else if(hit_atom.density && !hit_atom.CanPass(src, get_dir(hit_atom, src)))
-			visible_message(span_danger("[src] smashes into [hit_atom]!"))
+/mob/living/simple_animal/hostile/proc/on_charge_impact(atom/hit_atom)
+	if(isliving(hit_atom))
+		var/mob/living/L = hit_atom
+		var/blocked = FALSE
+		if(ishuman(hit_atom))
+			var/mob/living/carbon/human/H = hit_atom
+			if(H.check_shields(src, 0, "the [name]", attack_type = LEAP_ATTACK))
+				blocked = TRUE
+		if(!blocked)
+			L.visible_message((span_danger("[src] pounces onto[L]!")), (span_userdanger("[src] pounces on you!")))
+			L.Knockdown(knockdown_time)
+		else
 			Stun((knockdown_time * 2), ignore_canstun = TRUE)
+	else if(hit_atom.density && !hit_atom.CanPass(src, get_dir(hit_atom, src)))
+		visible_message(span_danger("[src] smashes into [hit_atom]!"))
+		Stun((knockdown_time * 2), ignore_canstun = TRUE)
 
-		if(charge_state)
-			charge_state = FALSE
-			update_icons()
+	SSmove_manager.stop_looping(src)
 
 /mob/living/simple_animal/hostile/proc/get_targets_from()
 	var/atom/target_from = targets_from.resolve()

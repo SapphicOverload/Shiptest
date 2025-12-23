@@ -156,45 +156,20 @@
 	loot = list()
 	stat_attack = UNCONSCIOUS
 	robust_searching = 1
+	charger = TRUE
+	charge_delay = 1 SECONDS
+	charge_distance = 7
 	var/saddled = FALSE
-	var/charging = FALSE
-	var/revving_charge = FALSE
-	var/charge_range = 7
 	var/tent_range = 3
-
-/mob/living/simple_animal/hostile/asteroid/goliath/beast/proc/charge(atom/chargeat = target, delay = 10, chargepast = 2)
-	if(!chargeat)
-		return
-	var/chargeturf = get_turf(chargeat)
-	if(!chargeturf)
-		return
-	var/dir = get_dir(src, chargeturf)
-	var/turf/T = get_ranged_target_turf(chargeturf, dir, chargepast)
-	if(!T)
-		return
-	charging = TRUE
-	revving_charge = TRUE
-	walk(src, 0)
-	setDir(dir)
-	var/obj/effect/temp_visual/decoy/D = new /obj/effect/temp_visual/decoy(loc,src)
-	animate(D, alpha = 0, color = "#FF0000", transform = matrix()*2, time = 3)
-	SLEEP_CHECK_DEATH(delay)
-	revving_charge = FALSE
-	var/movespeed = 0.7
-	walk_towards(src, T, movespeed)
-	SLEEP_CHECK_DEATH(get_dist(src, T) * movespeed)
-	walk(src, 0) // cancel the movement
-	charging = FALSE
 
 /mob/living/simple_animal/hostile/asteroid/goliath/beast/Bump(atom/A)
 	. = ..()
-	if(charging && isclosedturf(A))				// We slammed into a wall while charging
+	if(charge_state && isclosedturf(A))				// We slammed into a wall while charging
 		wall_slam(A)
 
 /mob/living/simple_animal/hostile/asteroid/goliath/beast/proc/wall_slam(atom/A)
-	charging = FALSE
 	Stun(100, TRUE, TRUE)
-	walk(src, 0)		// Cancel the movement
+	SSmove_manager.stop_looping(src) // Cancel the movement
 	if(ismineralturf(A))
 		var/turf/closed/mineral/M = A
 		if(M.mineralAmt < 7)
@@ -211,8 +186,8 @@
 		ranged_cooldown = world.time + ranged_cooldown_time
 		icon_state = icon_aggro
 		pre_attack = 0
-	else if(dist <= charge_range && can_charge)		//Screen range check, so you can't get charged offscreen
-		charge()
+	else if(dist <= charge_distance && charger)		//Screen range check, so you can't get charged offscreen
+		enter_charge(target)
 
 /mob/living/simple_animal/hostile/asteroid/goliath/beast/attackby(obj/item/O, mob/user, params)
 	if(istype(O, /obj/item/saddle) && !saddled)
@@ -387,7 +362,7 @@
 	tentacle_type = /obj/effect/temp_visual/goliath_tentacle/crystal
 	tentacle_recheck_cooldown = 50
 	speed = 2
-	can_charge = FALSE
+	charger = FALSE
 	var/spiral_attack_inprogress = FALSE
 
 /mob/living/simple_animal/hostile/asteroid/goliath/beast/ancient/crystal/OpenFire()

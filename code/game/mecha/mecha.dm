@@ -704,7 +704,7 @@
 		if(isobj(obstacle))
 			var/obj/object = obstacle
 			obstacle.mech_melee_attack(src)
-			if(!(object.resistance_flags & INDESTRUCTIBLE) && charge_toss_structures && !object.anchored && !QDELETED(object))
+			if(!(object.resistance_flags & INDESTRUCTIBLE) && charge_toss_structures)
 				object.throw_at(throw_target, 4, 3)
 			visible_message(span_danger("[src] crashes into [obstacle]!"))
 			playsound(src, 'sound/effects/bang.ogg', 50, TRUE)
@@ -1324,15 +1324,18 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 	if(!cell.use(charge_power_consume))
 		return
 
-	var/datum/move_loop/new_loop = SSmove_manager.home_onto(src, charge_target, delay = 1, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
-	if(!new_loop)
-		return
 	charging = min(get_dist(src, charge_target), charge_distance)
+	var/datum/move_loop/new_loop = SSmove_manager.home_onto(src, charge_target, delay = 0.5, priority = MOVEMENT_ABOVE_SPACE_PRIORITY)
+	if(!new_loop)
+		charging = FALSE
+		return
 	RegisterSignal(new_loop, COMSIG_MOVELOOP_POSTPROCESS, PROC_REF(charge_post_move))
 	RegisterSignals(new_loop, COMSIG_QDELETING, PROC_REF(charge_end))
 
 /obj/mecha/proc/charge_post_move(datum)
 	SIGNAL_HANDLER
+	if(charging % 2)
+		play_stepsound()
 	charging--
 	if(charging <= 0)
 		charge_end()
