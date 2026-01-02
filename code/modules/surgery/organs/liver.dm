@@ -15,7 +15,7 @@
 
 	food_reagents = list(/datum/reagent/consumable/nutriment/organ_tissue = 5, /datum/reagent/iron = 5)
 
-	/// This multiplies the amount of damage the liver takes from alcohol. If set to zero, no damage will be taken.
+	/// This divides the amount of damage the liver takes from alcohol. If set to zero, no damage will be taken.
 	var/alcohol_tolerance = 1
 	var/toxTolerance = LIVER_DEFAULT_TOX_TOLERANCE//maximum amount of toxins the liver can just shrug off
 	var/toxLethality = LIVER_DEFAULT_TOX_LETHALITY//affects how much damage toxins do to the liver
