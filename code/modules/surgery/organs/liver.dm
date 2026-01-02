@@ -15,7 +15,8 @@
 
 	food_reagents = list(/datum/reagent/consumable/nutriment/organ_tissue = 5, /datum/reagent/iron = 5)
 
-	var/alcohol_tolerance = ALCOHOL_RATE//affects how much damage the liver takes from alcohol
+	/// This multiplies the amount of damage the liver takes from alcohol. If set to zero, no damage will be taken.
+	var/alcohol_tolerance = 1
 	var/toxTolerance = LIVER_DEFAULT_TOX_TOLERANCE//maximum amount of toxins the liver can just shrug off
 	var/toxLethality = LIVER_DEFAULT_TOX_LETHALITY//affects how much damage toxins do to the liver
 	var/filterToxins = TRUE //whether to filter toxins
@@ -68,7 +69,7 @@
 	name = "insectoid liver"
 	icon_state = "liver-x" //xenomorph liver? It's just a black liver so it fits.
 	desc = "A mutant liver designed to handle the unique diet of a flyperson."
-	alcohol_tolerance = 0.007 //flies eat vomit, so a lower alcohol tolerance is perfect!
+	alcohol_tolerance = 0.7 //flies eat vomit, so a lower alcohol tolerance is perfect!
 
 /obj/item/organ/liver/plasmaman
 	name = "reagent processing crystal"
@@ -106,7 +107,7 @@
 	name = "upgraded cybernetic liver"
 	icon_state = "liver-c-u2"
 	desc = "An upgraded version of the cybernetic liver, designed to improve further upon organic livers. It is resistant to alcohol poisoning and is very robust at filtering toxins."
-	alcohol_tolerance = 0.001
+	alcohol_tolerance = 5
 	maxHealth = 2 * STANDARD_ORGAN_THRESHOLD
 	toxTolerance = 10 //can shrug off up to 10u of toxins
 	toxLethality = 0.008 //20% less damage than a normal liver

@@ -1,5 +1,7 @@
 /// The threshld which determine if someone is tipsy vs drunk
 #define TIPSY_THRESHOLD 6
+#define DRUNKENNESS_DECAY_FLAT 0.004
+#define DRUNKENNESS_DECAY_PORTION 0.016
 
 /**
  * The drunk status effect.
@@ -62,9 +64,9 @@
 		return
 
 	// Every tick, the drunk value decrases by
-	// 4% the current drunk_value + 0.01
+	// 1.6% the current drunk_value + 0.004
 	// (until it reaches 0 and terminates)
-	set_drunk_value(drunk_value - (0.01 + drunk_value * 0.04))
+	set_drunk_value(drunk_value - (DRUNKENNESS_DECAY_FLAT + drunk_value * DRUNKENNESS_DECAY_PORTION))
 	if(QDELETED(src))
 		return
 
@@ -181,4 +183,6 @@
 		motor skills, and mental cognition. Make sure to act like it."
 	icon_state = "drunk"
 
+#undef DRUNKENNESS_DECAY_PORTION
+#undef DRUNKENNESS_DECAY_FLAT
 #undef TIPSY_THRESHOLD

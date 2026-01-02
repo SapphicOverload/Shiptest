@@ -371,10 +371,13 @@
 ///Greater numbers mean that less alcohol has greater intoxication potential
 #define ALCOHOL_THRESHOLD_MODIFIER 1
 ///The rate at which alcohol affects you
-#define ALCOHOL_RATE 0.005
+#define ALCOHOL_RATE 0.002
+///The divisor used to calculate how much liver damage alcohol should inflict. Higher means reduced damage.
+#define ALCOHOL_LIVER_DIVISOR 150
 ///The exponent applied to boozepwr to make higher volume alcohol at least a little bit damaging to the liver
 #define ALCOHOL_EXPONENT 1.6
-#define ETHANOL_METABOLISM 0.5 * REAGENTS_METABOLISM
+///The rate at which ethanol metabolizes. This has been significantly increased
+#define ETHANOL_METABOLISM 0.2 * REAGENTS_METABOLISM
 
 // Eye protection
 #define FLASH_PROTECTION_SENSITIVE -1

@@ -51,8 +51,8 @@ All effects don't start immediately, but rather get worse over time; the rate is
 		drinker.adjust_drunk_effect(sqrt(volume) * booze_power * ALCOHOL_RATE * REM)
 		if(boozepwr > 0)
 			var/obj/item/organ/liver/drinker_liver = drinker.getorganslot(ORGAN_SLOT_LIVER)
-			if (istype(drinker_liver))
-				drinker_liver.applyOrganDamage(((max(sqrt(volume) * (boozepwr ** ALCOHOL_EXPONENT) * drinker_liver.alcohol_tolerance, 0))/150))
+			if(istype(drinker_liver) && drinker_liver.alcohol_tolerance > 0)
+				drinker_liver.applyOrganDamage(((max(sqrt(volume) * (boozepwr ** ALCOHOL_EXPONENT) * ALCOHOL_RATE / drinker_liver.alcohol_tolerance, 0)) / ALCOHOL_LIVER_DIVISOR))
 	return ..()
 
 /datum/reagent/consumable/ethanol/expose_obj(obj/O, reac_volume)
