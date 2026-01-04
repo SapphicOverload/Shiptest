@@ -101,8 +101,9 @@
 
 		dtype = I.damtype
 		if(!blocked)
-			if(I.thrownby)
-				log_combat(I.thrownby, src, "threw and hit", I)
+			var/atom/thrower = I.thrownby.resolve()
+			if(thrower)
+				log_combat(thrower, src, "threw and hit", I)
 			if(!nosell_hit)
 				visible_message(
 					span_danger("[src] is hit by [I]!"),
