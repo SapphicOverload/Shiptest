@@ -2356,9 +2356,6 @@
 	},
 /obj/structure/window/reinforced/fulltile,
 /obj/structure/grille,
-/obj/machinery/door/poddoor{
-	id = "nsmine_canteen"
-	},
 /turf/open/floor/plating,
 /area/ruin/rockplanet/mining_base/canteen)
 "mH" = (
@@ -3751,10 +3748,6 @@
 "uG" = (
 /obj/effect/turf_decal/box,
 /obj/effect/decal/cleanable/dirt,
-/obj/machinery/drill/mission/ruin,
-/obj/effect/landmark/mission_poi/main/drill{
-	already_spawned = 1
-	},
 /obj/structure/vein/rockplanet/classfour,
 /turf/open/floor/plating/asteroid/rockplanet/wet/cracked,
 /area/ruin/rockplanet/mining_base/rig_two)
@@ -6195,10 +6188,6 @@
 /obj/effect/mob_spawn/human/corpse/ruin/ns_mine_manager,
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden/layer4{
 	dir = 5
-	},
-/obj/effect/landmark/mission_poi/main{
-	already_spawned = 1;
-	mission_index = 2
 	},
 /turf/open/floor/carpet,
 /area/ruin/rockplanet/mining_base/office)

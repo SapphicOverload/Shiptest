@@ -644,7 +644,7 @@
 	category = list("initial", "Medical", "Medical Designs")
 
 /datum/design/chemical_bottle
-	name = "Glass Bottle"
+	name = "Bottle"
 	id = "bottle"
 	build_type = AUTOLATHE
 	materials = list(/datum/material/glass = 300)
@@ -779,14 +779,6 @@
 	build_path = /obj/item/wallframe/newscaster
 	category = list("initial", "Construction")
 
-/datum/design/mission_board_frame
-	name = "Bounty Board Frame"
-	id = "bountyboard_frame"
-	build_type = AUTOLATHE
-	materials = list(/datum/material/iron = 14000, /datum/material/glass = 8000)
-	build_path = /obj/item/wallframe/mission_viewer
-	category = list("initial", "Construction")
-
 /datum/design/syringe
 	name = "Syringe"
 	id = "syringe"
@@ -849,7 +841,7 @@
 	name = "Ammo Box (.38 surplus)"
 	id = "c38_surplus"
 	build_type = AUTOLATHE | PROTOLATHE
-	materials = list(/datum/material/iron = 15000)
+	materials = list(/datum/material/iron = 16000)
 	build_path = /obj/item/storage/box/ammo/c38_surplus
 	category = list("initial", "Security", "Ammo")
 
@@ -889,7 +881,7 @@
 	name = "Ammo Box (10x22mm surplus)"
 	id = "c10mm-surplus"
 	build_type = AUTOLATHE | PROTOLATHE
-	materials = list(/datum/material/iron = 15000)
+	materials = list(/datum/material/iron = 16000)
 	build_path = /obj/item/storage/box/ammo/c10mm_surplus
 	category = list("initial", "Security", "Ammo")
 
@@ -897,7 +889,7 @@
 	name = "Ammo Box (.45 surplus)"
 	id = "c45-surplus"
 	build_type = AUTOLATHE | PROTOLATHE
-	materials = list(/datum/material/iron = 15000)
+	materials = list(/datum/material/iron = 16000)
 	build_path = /obj/item/storage/box/ammo/c45_surplus
 	category = list("initial", "Security", "Ammo")
 
@@ -905,7 +897,7 @@
 	name = "Ammo Box (9x18mm surplus)"
 	id = "c9mm-surplus"
 	build_type = AUTOLATHE | PROTOLATHE
-	materials = list(/datum/material/iron = 15000)
+	materials = list(/datum/material/iron = 16000)
 	build_path = /obj/item/storage/box/ammo/c9mm_surplus
 	category = list("initial", "Security", "Ammo")
 
@@ -913,7 +905,7 @@
 	name = "Ammo Box (surplus 5.56mm HITP caseless)"
 	id = "c556mmHITP-surplus"
 	build_type = AUTOLATHE | PROTOLATHE
-	materials = list(/datum/material/iron = 15000)
+	materials = list(/datum/material/iron = 16000)
 	build_path = /obj/item/storage/box/ammo/c556mm_surplus
 	category = list("initial", "Security", "Ammo")
 

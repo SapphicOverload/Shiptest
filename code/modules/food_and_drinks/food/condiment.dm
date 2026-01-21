@@ -91,7 +91,7 @@
 		M.visible_message(span_warning("[user] fed [M] from [src]."), \
 			span_warning("[user] fed you from [src]."))
 		log_combat(user, M, "fed", reagents.log_list())
-	reagents.trans_to(M, 10, transfered_by = user, method = INGEST)
+	reagents.trans_to(M, 10, transfered_by = user, methods = INGEST)
 	playsound(M.loc,'sound/items/drink.ogg', rand(10,50), TRUE)
 	return 1
 
@@ -391,7 +391,7 @@
 	list_reagents = list(/datum/reagent/consumable/tiris_sele = 50)
 
 /obj/item/reagent_containers/condiment/tiris_sale
-	name = "tiris sele"
+	name = "tiris sale"
 	desc = "A reduction made from the blood of a Tiris and a mixture of savory herbs. The flavor is very intense, and best used to augment a dish."
 	icon_state = "tiris-sauce"
 	list_reagents = list(/datum/reagent/consumable/tiris_sale = 50)
