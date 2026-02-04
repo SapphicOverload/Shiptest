@@ -311,14 +311,6 @@
 	/// Associated list of features granted by this chassis and their default values.
 	var/list/chassis_features = list()
 
-/// Returns whether this chassis has a specific part typepath available in a given zone.
-/datum/sprite_accessory/ipc_chassis/proc/is_valid_part_for_zone(bodypart_type, zone)
-	if(bodypart_type == chassis_bodyparts[zone])
-		return TRUE
-	if(bodypart_type in chassis_alternate_bodyparts?[zone])
-		return TRUE
-	return FALSE
-
 /datum/sprite_accessory/ipc_chassis/morpheus
 	name = "Morpheus Cyberkinetics (Custom)"
 	chassis_bodyparts = list(
