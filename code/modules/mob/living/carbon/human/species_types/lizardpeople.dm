@@ -45,6 +45,11 @@
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/robot/surplus/lizard/digitigrade,
 	)
 
+	species_alternate_limbs = list(
+		BODY_ZONE_L_LEG = list(/obj/item/bodypart/leg/left/lizard),
+		BODY_ZONE_R_LEG = list(/obj/item/bodypart/leg/right/lizard),
+	)
+
 	robotic_eyes = /obj/item/organ/eyes/robotic/lizard
 
 	// Sarathi are coldblooded and can stand a greater temperature range than humans

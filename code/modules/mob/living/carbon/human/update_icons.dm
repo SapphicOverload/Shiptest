@@ -394,7 +394,7 @@ There are several things that need to be remembered:
 
 		if((dna.species.bodytype & BODYTYPE_DIGITIGRADE) && ((I.supports_variations & DIGITIGRADE_VARIATION) || (I.supports_variations & DIGITIGRADE_VARIATION_SAME_ICON_FILE)))
 			var/obj/item/bodypart/leg = src.get_bodypart(BODY_ZONE_L_LEG)
-			if(leg.bodytype & BODYTYPE_DIGITIGRADE && !leg.plantigrade_forced)
+			if(leg.bodytype & BODYTYPE_DIGITIGRADE && !(leg.bodypart_flags & BODYPART_FORCED_PLANTIGRADE))
 				icon_file = DIGITIGRADE_SHOES_PATH
 			if((I.supports_variations & DIGITIGRADE_VARIATION_SAME_ICON_FILE))
 				icon_file = I.mob_overlay_icon

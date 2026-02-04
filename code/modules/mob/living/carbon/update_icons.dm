@@ -217,7 +217,7 @@
 			continue
 		limb.update_limb(is_creating = update_limb_data) //Update limb actually doesn't do much, get_limb_icon is the cpu eater.
 		var/old_key = icon_render_keys?[limb.body_zone]
-		icon_render_keys[limb.body_zone] = (limb.is_husked) ? limb.generate_husk_key().Join() : limb.generate_icon_key().Join()
+		icon_render_keys[limb.body_zone] = (limb.bodypart_flags & BODYPART_HUSKED) ? limb.generate_husk_key().Join() : limb.generate_icon_key().Join()
 		if(!(icon_render_keys[zone] == old_key))
 			needs_update += limb
 
@@ -278,7 +278,7 @@
 		. += "[limb_gender]-"
 	. += "[limb_id]"
 	. += "-[body_zone]"
-	if(bodytype & BODYTYPE_DIGITIGRADE && !plantigrade_forced)
+	if(bodytype & BODYTYPE_DIGITIGRADE && !(bodypart_flags & BODYPART_FORCED_PLANTIGRADE))
 		. += "-digitigrade"
 	if(should_draw_greyscale && draw_color)
 		. += "-[draw_color]"

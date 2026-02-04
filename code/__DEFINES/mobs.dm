@@ -149,6 +149,11 @@
 #define BODYTYPE_KEPORI (1<<7) //Just Kepori
 #define BODYTYPE_VOX (1<<8) //Big Vox
 
+//Bodypart flags
+#define BODYPART_HUSKED (1<<0)
+#define BODYPART_ROUNDSTART_SELECT (1<<1)
+#define BODYPART_FORCED_PLANTIGRADE (1<<2)
+
 // Health/damage defines
 #define MAX_LIVING_HEALTH 100
 

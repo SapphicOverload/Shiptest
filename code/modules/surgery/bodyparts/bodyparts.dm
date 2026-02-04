@@ -14,14 +14,12 @@
 	var/datum/weakref/original_owner = null
 	///List of bodytypes flags, important for fitting clothing. If you'd like to know if a bodypart is organic, please use is_organic_limb()
 	var/bodytype = BODYTYPE_HUMANOID | BODYTYPE_ORGANIC
+	///List of flags for things such as forced plantigrade and roundstart selectability.
+	var/bodypart_flags = NONE
 
 	///The types of wounds this bodypart is capable of receiving.
 	var/biological_state = BIO_STANDARD_UNJOINTED
 
-	///Whether the clothing being worn forces the limb into being "squished" to plantigrade/standard humanoid compliance
-	var/plantigrade_forced = FALSE
-	///Whether the limb is husked
-	var/is_husked = FALSE
 	///This is effectively the icon_state prefix for limbs.
 	var/limb_id = SPECIES_HUMAN
 	///Defines what sprite the limb should use if it is also sexually dimorphic.
@@ -939,10 +937,10 @@
 
 	if(HAS_TRAIT(C, TRAIT_HUSK) && IS_ORGANIC_LIMB(src))
 		//dmg_overlay_type = "" //no damage overlay shown when husked
-		is_husked = TRUE
+		bodypart_flags |= BODYPART_HUSKED
 	else
 		//dmg_overlay_type = initial(dmg_overlay_type)
-		is_husked = FALSE
+		bodypart_flags &= ~BODYPART_HUSKED
 
 	if(!dropping_limb && C.dna?.check_mutation(HULK)) //Please remove hulk from the game. I beg you.
 		mutation_color = "00aa00"
@@ -1045,7 +1043,7 @@
 	if(animal_origin) //Cringe ass animal-specific code.
 		if(IS_ORGANIC_LIMB(src))
 			limb.icon = 'icons/mob/animal_parts.dmi'
-			if(is_husked)
+			if(bodypart_flags & BODYPART_HUSKED)
 				limb.icon_state = "[animal_origin]_husk_[body_zone]"
 			else
 				limb.icon_state = "[animal_origin]_[body_zone]"
@@ -1055,7 +1053,7 @@
 		. += limb
 		return
 
-	if(is_husked)
+	if(bodypart_flags & BODYPART_HUSKED)
 		limb.icon = husk_icon
 		limb.icon_state = "[husk_type]_husk_[body_zone]"
 		. += limb
@@ -1073,13 +1071,13 @@
 
 	if(is_dimorphic) //Does this type of limb have sexual dimorphism?
 		limb.icon_state += "_[limb_gender]"
-	if(bodytype & BODYTYPE_DIGITIGRADE && !plantigrade_forced)
+	if(bodytype & BODYTYPE_DIGITIGRADE && !(bodypart_flags & BODYPART_FORCED_PLANTIGRADE))
 		limb.icon_state += "_digitigrade"
 
 	if(!icon_exists(limb.icon, limb.icon_state))
 		limb_stacktrace("Limb generated with nonexistant icon. File: [limb.icon] | State: [limb.icon_state]", GLOB.Debug) //If you *really* want more of these, you can set the *other* global debug flag manually.
 
-	if(!is_husked)
+	if(!(bodypart_flags & BODYPART_HUSKED))
 		. += limb
 
 		if(aux_zone) //Hand shit
@@ -1113,7 +1111,7 @@
 			//add two masked images based on the old one
 			. += leg_source.generate_masked_leg(limb_image, image_dir)
 
-	/*if(!is_husked)
+	/*if(!(bodypart_flags & BODYPART_HUSKED))
 		//Draw external organs like horns and frills
 		for(var/obj/item/organ/external/external_organ as anything in external_organs)
 			if(!dropped && !external_organ.can_draw_on_bodypart(owner))

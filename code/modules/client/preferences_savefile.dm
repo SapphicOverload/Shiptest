@@ -5,7 +5,7 @@
 //	You do not need to raise this if you are adding new values that have sane defaults.
 //	Only raise this value when changing the meaning/format/name/layout of an existing value
 //	where you would want the updater procs below to run
-#define SAVEFILE_VERSION_MAX 43
+#define SAVEFILE_VERSION_MAX 44
 
 /*
 SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Carn
@@ -124,7 +124,55 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 			pronouns = "It"
 		else
 			pronouns = "They"
-
+	if(current_version < 44) // hell
+		var/ipc_chassis
+		READ_FILE(S["feature_ipc_chassis"], ipc_chassis)
+		switch(ipc_chassis)
+			if("PGF Mechanics Type-P", "PGF Mechanics Type-D")
+				features["feature_ipc_chassis"] = "PGF Mechanics"
+			if("Inteq Mothership 'Sprinter' Type 1", "Inteq Mothership 'Sprinter' Type 2")
+				features["feature_ipc_chassis"] = "Inteq Mothership 'Sprinter'"
+		var/list/prosthetic_limbs
+		READ_FILE(S["prosthetic_limbs"], prosthetic_limbs)
+		for(var/zone in prosthetic_limbs)
+			var/old_part = prosthetic_limbs[zone]
+			if(!istext(old_part))
+				continue
+			switch(old_part)
+				if(PART_NORMAL)
+					continue
+				if(PART_NONE)
+					continue
+				if(PART_ROBOTIC)
+					continue
+				else
+					var/obj/item/bodypart/new_part
+					switch(old_part)
+						if("PGF Mechanics Type-P")
+							switch(zone)
+								if(BODY_ZONE_L_LEG)
+									new_part = /obj/item/bodypart/leg/left/ipc/pgf
+								if(BODY_ZONE_R_LEG)
+									new_part = /obj/item/bodypart/leg/right/ipc/pgf
+						if("PGF Mechanics Type-D")
+							switch(zone)
+								if(BODY_ZONE_L_LEG)
+									new_part = /obj/item/bodypart/leg/left/ipc/pgf/type_d
+								if(BODY_ZONE_R_LEG)
+									new_part = /obj/item/bodypart/leg/right/ipc/pgf/type_d
+						if("Inteq Mothership 'Sprinter' Type 1")
+							if(zone == BODY_ZONE_HEAD)
+								new_part = /obj/item/bodypart/head/ipc/sprinter
+						if("Inteq Mothership 'Sprinter' Type 2")
+							if(zone == BODY_ZONE_HEAD)
+								new_part = /obj/item/bodypart/head/ipc/sprinter/type_2
+						else
+							var/datum/sprite_accessory/ipc_chassis/limb_style = GLOB.ipc_chassis_list[old_part]
+							new_part = limb_style.chassis_bodyparts[zone]
+					if(!(new_part::bodytype & pref_species.bodytype))
+						body_parts[zone] = pref_species.species_limbs[zone] ? PART_NORMAL : PART_NONE
+						continue
+					body_parts[zone] = new_part
 
 /// checks through keybindings for outdated unbound keys and updates them
 /datum/preferences/proc/check_keybindings()
@@ -450,11 +498,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	READ_FILE(S["generic_adjective"], generic_adjective)
 	READ_FILE(S["randomise"],  randomise)
 	READ_FILE(S["height_filter"], height_filter)
-	READ_FILE(S["prosthetic_limbs"], prosthetic_limbs)
-	prosthetic_limbs ||= list(BODY_ZONE_HEAD = PROSTHETIC_NORMAL, BODY_ZONE_CHEST = PROSTHETIC_NORMAL, BODY_ZONE_L_ARM = PROSTHETIC_NORMAL, BODY_ZONE_R_ARM = PROSTHETIC_NORMAL, BODY_ZONE_L_LEG = PROSTHETIC_NORMAL, BODY_ZONE_R_LEG = PROSTHETIC_NORMAL)
-	for(var/zone in list(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG))
-		if(!prosthetic_limbs[zone])
-			prosthetic_limbs[zone] = PROSTHETIC_NORMAL // necessary to prevent old savefiles from breaking the interface
+	READ_FILE(S["body_parts"], body_parts)
 	READ_FILE(S["learned_languages"], learned_languages)
 	if(!learned_languages?.len) init_learned_languages()
 	READ_FILE(S["native_language"], native_language)
@@ -542,6 +586,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	real_name = reject_bad_name(real_name)
 	gender = sanitize_gender(gender)
 	pronouns = sanitize_pronouns(pronouns)
+	body_parts = sanitize_body_parts(body_parts)
 	if(!real_name)
 		real_name = random_unique_name(gender)
 
@@ -658,7 +703,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["phobia"]						, phobia)
 	WRITE_FILE(S["generic_adjective"]			, generic_adjective)
 	WRITE_FILE(S["height_filter"]				, height_filter)
-	WRITE_FILE(S["prosthetic_limbs"]			, prosthetic_limbs)
+	WRITE_FILE(S["body_parts"]					, body_parts)
 	WRITE_FILE(S["learned_languages"]			, learned_languages)
 	WRITE_FILE(S["native_language"]				, native_language)
 	WRITE_FILE(S["feature_mcolor"]				, features["mcolor"])

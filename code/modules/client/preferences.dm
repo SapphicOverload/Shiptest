@@ -152,13 +152,13 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 							"They/Them" = "They",
 							"It/Its" = "It"
 						)
-	var/list/prosthetic_limbs = list(
-							BODY_ZONE_HEAD = PROSTHETIC_NORMAL,
-							BODY_ZONE_CHEST = PROSTHETIC_NORMAL,
-							BODY_ZONE_L_ARM = PROSTHETIC_NORMAL,
-							BODY_ZONE_R_ARM = PROSTHETIC_NORMAL,
-							BODY_ZONE_L_LEG = PROSTHETIC_NORMAL,
-							BODY_ZONE_R_LEG = PROSTHETIC_NORMAL,
+	var/list/body_parts = list(
+							BODY_ZONE_HEAD = PART_NORMAL,
+							BODY_ZONE_CHEST = PART_NORMAL,
+							BODY_ZONE_L_ARM = PART_NORMAL,
+							BODY_ZONE_R_ARM = PART_NORMAL,
+							BODY_ZONE_L_LEG = PART_NORMAL,
+							BODY_ZONE_R_LEG = PART_NORMAL,
 						)
 	var/fbp = FALSE
 	var/phobia = "spiders"
@@ -937,19 +937,25 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 				mutant_category = 0
 			dat += "</tr></table>"
 
-			var/metal_skin = fbp || pref_species.inherent_biotypes & MOB_ROBOTIC
-			dat += metal_skin ? "<h3>Chassis Customization</h3>" : "<h3>Prosthetic Limbs</h3>"
+			var/metal_skin = fbp || (pref_species.inherent_biotypes & MOB_ROBOTIC)
+			dat += metal_skin ? "<h3>Chassis Customization</h3>" : "<h3>Body Parts</h3>"
 			dat += "<a href='byond://?_src_=prefs;preference=fbp'>Full Body Prosthesis: [fbp ? "Yes" : "No"]</a><br>"
 
 			dat += "<a href='byond://?_src_=prefs;preference=toggle_random;random_type=[RANDOM_PROSTHETIC]'>Random Prosthetic: [(randomise[RANDOM_PROSTHETIC]) ? "Yes" : "No"]</a><br>"
 
 			dat += "<table>"
-			for(var/index in prosthetic_limbs)
+			for(var/index in body_parts)
 				if(!metal_skin && (index == BODY_ZONE_CHEST || index == BODY_ZONE_HEAD))
 					continue
-				var/bodypart_name = parse_zone(index)
-				dat += "<tr><td><b>[bodypart_name]:</b></td>"
-				dat += "<td><a href='byond://?_src_=prefs;preference=limbs;customize_limb=[index]'>[prosthetic_limbs[index]]</a></td></tr>"
+				var/zone_name = parse_zone(index)
+				var/bodypart_name
+				if(istext(body_parts[index]))
+					bodypart_name = body_parts[index]
+				else
+					var/obj/item/bodypart/selected_part = body_parts[index]
+					bodypart_name = selected_part::name
+				dat += "<tr><td><b>[zone_name]:</b></td>"
+				dat += "<td><a href='byond://?_src_=prefs;preference=limbs;customize_limb=[index]'>[bodypart_name]</a></td></tr>"
 			dat += "</table><br>"
 
 		if(2) //Loadout
@@ -1542,6 +1548,58 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 		points_balance -= 2
 	return points_balance
 
+/// This cleans up anything that might be wrong with the list of bodyparts.
+/datum/preferences/proc/sanitize_body_parts(list/old_parts)
+	var/list/new_parts = list()
+	var/old_part
+	var/obj/item/bodypart/default_part
+
+	for(var/zone in pref_species.species_limbs)
+		old_part = old_parts?[zone]
+		default_part = pref_species.species_limbs[zone]
+		if(!old_part)
+			new_parts[zone] = default_part ? PART_NORMAL : PART_NONE
+			continue
+
+		if(default_part)
+			new_parts[zone] = PART_NORMAL
+		else
+			new_parts[zone] = PART_NONE
+
+		switch(old_part)
+			if(PART_NORMAL)
+				continue
+
+			if(PART_NONE)
+				if(zone == BODY_ZONE_CHEST)
+					if(!default_part)
+						stack_trace("[pref_species.type] does not have a defined chest bodypart!")
+					new_parts[zone] = PART_NORMAL
+				var/obj/item/organ/species_brain = pref_species.mutantbrain
+				if(zone == species_brain::zone) // This allows IPCs to be missing their head, since they don't technically need it
+					if(!default_part)
+						stack_trace("[pref_species.type] is missing a defined bodypart where its brain should be!")
+					new_parts[zone] = PART_NORMAL
+
+			if(PART_ROBOTIC)
+				if(!pref_species.species_robotic_limbs[zone])
+					new_parts[zone] = PART_NONE
+					continue
+				new_parts[zone] = PART_ROBOTIC
+
+			else
+				var/obj/item/bodypart/old_part_type = old_part
+				if(!(old_part_type::bodytype & pref_species.bodytype))
+					continue
+				if(old_part in pref_species.species_alternate_limbs?[zone])
+					new_parts[zone] = old_part
+					continue
+				if(old_part_type::bodypart_flags & BODYPART_ROUNDSTART_SELECT)
+					new_parts[zone] = old_part
+					continue
+
+	return new_parts
+
 /datum/preferences/Topic(href, href_list, hsrc)			//yeah, gotta do this I guess..
 	. = ..()
 	if(href_list["close"])
@@ -1585,6 +1643,8 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 				var/sid = href_list["newspecies"]
 				var/newtype = GLOB.species_list[sid]
 				pref_species = new newtype()
+				//Immediately make sure all selected bodyparts are still valid for the new species.
+				body_parts = sanitize_body_parts(body_parts)
 				//Now that we changed our species, we must verify that the mutant colour is still allowed.
 				var/temp_hsv = RGBtoHSV(features["mcolor"])
 				if(text2num(features["mcolor"], 16) == 0  || (!(MUTCOLORS_PARTSONLY in pref_species.species_traits) && ReadHSV(temp_hsv)[3] < ReadHSV("#191919")[3]))
@@ -2227,21 +2287,37 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 
 				if("limbs")
 					if(href_list["customize_limb"])
-						var/limb = href_list["customize_limb"]
-						var/list/limb_options = list(PROSTHETIC_NORMAL, PROSTHETIC_ROBOTIC)
-						if(limb != BODY_ZONE_CHEST && limb != BODY_ZONE_HEAD)
-							limb_options.Add(PROSTHETIC_AMPUTATED) // starting without a head or chest causes instant death, must be disallowed
-						var/datum/sprite_accessory/ipc_chassis/limb_style
+						var/zone = href_list["customize_limb"]
+						var/list/limb_options = list()
+						if(pref_species.species_limbs[zone])
+							limb_options[PART_NORMAL] = PART_NORMAL
+						if(pref_species.species_robotic_limbs[zone])
+							limb_options[PART_ROBOTIC] = PART_ROBOTIC
+						if(zone != BODY_ZONE_CHEST && zone != pref_species.mutantbrain::zone)
+							limb_options[PART_NONE] = PART_NONE // starting without a chest or brain causes instant death, must be disallowed
 						var/obj/item/bodypart/part_candidate
+						if(pref_species.species_alternate_limbs?[zone])
+							for(var/obj/item/bodypart/alt_limb_type as anything in pref_species.species_alternate_limbs[zone])
+								if(!(alt_limb_type::bodytype & pref_species.bodytype))
+									continue // in case someone adds vox/kepori ipc frames
+								limb_options[alt_limb_type::name] = alt_limb_type
+						var/datum/sprite_accessory/ipc_chassis/limb_style
 						for(var/chassis in GLOB.ipc_chassis_list)
 							limb_style = GLOB.ipc_chassis_list[chassis]
-							part_candidate = limb_style.chassis_bodyparts[limb]
-							if(!(pref_species.bodytype & initial(part_candidate.bodytype))) // don't allow vox and kepori to select limbs that aren't compatible
-								continue
-							limb_options.Add(chassis)
-						var/status = input(user, "You are modifying your [parse_zone(limb)], what should it be changed to?", "Character Preference", prosthetic_limbs[limb]) in limb_options
-						if(status)
-							prosthetic_limbs[limb] = status
+							part_candidate = limb_style.chassis_bodyparts[zone]
+							if(part_candidate::bodytype & pref_species.bodytype) // don't allow vox and kepori to select limbs that aren't compatible
+								limb_options[part_candidate::name] = part_candidate
+							if(limb_style.chassis_alternate_bodyparts[zone])
+								for(var/obj/item/bodypart/alt_limb_type as anything in limb_style.chassis_alternate_bodyparts[zone])
+									if(!(alt_limb_type::bodytype & pref_species.bodytype))
+										continue
+									limb_options[alt_limb_type::name] = alt_limb_type
+						if(!limb_options.len)
+							stack_trace("No possible limbs for [pref_species] [parse_zone(zone)]!")
+						else
+							var/new_limb = tgui_input_list(user, "You are modifying your [parse_zone(zone)], what should it be changed to?", "Character Preference", limb_options)
+							if(new_limb)
+								body_parts[zone] = limb_options[new_limb]
 
 				if("hotkeys")
 					hotkeys = !hotkeys
@@ -2541,7 +2617,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 		real_name = pref_species.random_name(gender)
 
 	if(randomise[RANDOM_PROSTHETIC] && !character_setup)
-		prosthetic_limbs = random_prosthetic()
+		body_parts[pref_species.random_prosthetic()] = PART_ROBOTIC
 
 	if(roundstart_checks)
 		if(CONFIG_GET(flag/humans_need_surnames) && (pref_species.id == SPECIES_HUMAN))
@@ -2600,40 +2676,44 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	character.dna.features = features.Copy()
 	character.set_species(chosen_species, icon_update = FALSE, pref_load = TRUE, robotic = fbp)
 
-	for(var/pros_limb in prosthetic_limbs)
-		var/obj/item/bodypart/old_part = character.get_bodypart(pros_limb)
+	for(var/zone in body_parts)
+		var/obj/item/bodypart/old_part = character.get_bodypart(zone)
 		if(old_part)
 			icon_updates = TRUE
-		switch(prosthetic_limbs[pros_limb])
-			if(PROSTHETIC_NORMAL)
+		switch(body_parts[zone])
+			if(PART_NORMAL)
 				if(old_part)
 					old_part.drop_limb(TRUE)
 					qdel(old_part)
-				character.regenerate_limb(pros_limb, robotic = fbp)
-			if(PROSTHETIC_AMPUTATED)
+				character.regenerate_limb(zone, robotic = fbp)
+			if(PART_NONE)
 				if(old_part)
 					old_part.drop_limb(TRUE)
 					qdel(old_part)
-				if(pros_limb == BODY_ZONE_CHEST || pros_limb == BODY_ZONE_HEAD)
-					stack_trace("[parent] somehow had their [parse_zone(pros_limb)] set to [PROSTHETIC_AMPUTATED]!")
-					prosthetic_limbs[pros_limb] = PROSTHETIC_NORMAL
-					character.regenerate_limb(pros_limb, robotic = fbp)
-			if(PROSTHETIC_ROBOTIC)
+				if(zone == BODY_ZONE_CHEST || zone == pref_species.mutantbrain::zone)
+					stack_trace("[parent] somehow had their [parse_zone(zone)] set to [PART_NONE]!")
+					body_parts[zone] = PART_NORMAL
+					character.regenerate_limb(zone, robotic = fbp)
+			if(PART_ROBOTIC)
 				if(old_part)
 					old_part.drop_limb(TRUE)
 					qdel(old_part)
-				character.regenerate_limb(pros_limb, robotic = TRUE)
+				character.regenerate_limb(zone, robotic = TRUE)
 			else
-				var/datum/sprite_accessory/ipc_chassis/limb_style = GLOB.ipc_chassis_list[prosthetic_limbs[pros_limb]]
-				var/obj/item/bodypart/new_part = limb_style.chassis_bodyparts[pros_limb]
+				if(istext(body_parts[zone]))
+					stack_trace("[parent] had invalid limb typepath [body_parts[zone]] selected as their [parse_zone(zone)]!")
+					body_parts[zone] = PART_NORMAL
+					character.regenerate_limb(zone, robotic = fbp)
+					continue
+				var/obj/item/bodypart/new_part = body_parts[zone]
 				new_part = new new_part()
 				if(old_part)
 					old_part.drop_limb(TRUE)
 					qdel(old_part)
 				if(!(new_part.bodytype & pref_species.bodytype))
-					stack_trace("[parent] had [limb_style.name] selected, which isn't compatible with [pref_species.name]!")
-					prosthetic_limbs[pros_limb] = PROSTHETIC_NORMAL
-					character.regenerate_limb(pros_limb, robotic = fbp)
+					stack_trace("[parent] had a [new_part.name] selected, which isn't compatible with [pref_species.name]!")
+					body_parts[zone] = PART_NORMAL
+					character.regenerate_limb(zone, robotic = fbp)
 					continue
 				if(new_part.should_draw_greyscale) // species that don't use mutant colors normally should still be able to color prosthetics that do
 					new_part.draw_color = features["mcolor"]

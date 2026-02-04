@@ -49,7 +49,7 @@
 	if(randomise[RANDOM_EYE_COLOR])
 		eye_color = random_eye_color()
 	if(randomise[RANDOM_PROSTHETIC])
-		prosthetic_limbs = random_prosthetic()
+		body_parts[pref_species.random_prosthetic()] = PART_ROBOTIC
 	if(!pref_species)
 		var/rando_race = pick(GLOB.roundstart_races)
 		pref_species = new rando_race()

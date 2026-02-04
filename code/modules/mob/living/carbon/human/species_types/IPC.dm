@@ -242,10 +242,12 @@
 	var/datum/sprite_accessory/ipc_chassis/chassis_of_choice = GLOB.ipc_chassis_list[C.dna.features["ipc_chassis"]]
 	if(chassis_of_choice)
 		qdel(species_limbs)
-		species_limbs = chassis_of_choice.chassis_bodyparts.Copy() // elegant.
+		species_limbs = chassis_of_choice.chassis_bodyparts.Copy()
+		for(var/zone in chassis_of_choice.chassis_alternate_bodyparts)
+			species_alternate_limbs[zone] |= chassis_of_choice.chassis_alternate_bodyparts[zone]
 		var/obj/item/bodypart/chest/new_chest = species_limbs[BODY_ZONE_CHEST]
 		if(new_chest)
-			bodytype = initial(new_chest.acceptable_bodytype)
+			bodytype = new_chest::acceptable_bodytype
 		else
 			stack_trace("[chassis_of_choice.type] had no chest bodypart!")
 		for(var/feature in chassis_of_choice.chassis_features)

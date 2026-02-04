@@ -123,10 +123,13 @@
 #define RANDOM_HAIR_GRADIENT_STYLE "random_grad_style"
 #define RANDOM_HAIR_GRADIENT_COLOR "random_grad_color"
 
-//prosthetics stuff
-#define PROSTHETIC_NORMAL "normal"
-#define PROSTHETIC_AMPUTATED "amputated"
-#define PROSTHETIC_ROBOTIC "prosthetic"
+//bodyparts stuff
+/// This bodypart is the default for the species.
+#define PART_NORMAL "normal"
+/// This bodypart is missing.
+#define PART_NONE "amputated"
+/// This bodypart is the default prosthetic for the species.
+#define PART_ROBOTIC "prosthetic"
 
 /// You cannot speak or understand this language whatsoever.
 #define LANGUAGE_UNKNOWN "Unknown (0)"

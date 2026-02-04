@@ -306,8 +306,18 @@
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/ipc,
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/ipc,
 	)
+	/// Associated list of bodypart zones and a list of alternate parts for that zone.
+	var/list/chassis_alternate_bodyparts = list()
 	/// Associated list of features granted by this chassis and their default values.
 	var/list/chassis_features = list()
+
+/// Returns whether this chassis has a specific part typepath available in a given zone.
+/datum/sprite_accessory/ipc_chassis/proc/is_valid_part_for_zone(bodypart_type, zone)
+	if(bodypart_type == chassis_bodyparts[zone])
+		return TRUE
+	if(bodypart_type in chassis_alternate_bodyparts?[zone])
+		return TRUE
+	return FALSE
 
 /datum/sprite_accessory/ipc_chassis/morpheus
 	name = "Morpheus Cyberkinetics (Custom)"
@@ -432,19 +442,7 @@
 	)
 
 /datum/sprite_accessory/ipc_chassis/pgf
-	name = "PGF Mechanics Type-P"
-	color_src = MUTCOLORS
-	chassis_bodyparts = list(
-		BODY_ZONE_HEAD = /obj/item/bodypart/head/ipc/pgf,
-		BODY_ZONE_CHEST = /obj/item/bodypart/chest/ipc/pgf,
-		BODY_ZONE_L_ARM = /obj/item/bodypart/l_arm/ipc/pgf,
-		BODY_ZONE_R_ARM = /obj/item/bodypart/r_arm/ipc/pgf,
-		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/ipc/pgf,
-		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/ipc/pgf,
-	)
-
-/datum/sprite_accessory/ipc_chassis/pgf_type_d
-	name = "PGF Mechanics Type-D"
+	name = "PGF Mechanics"
 	color_src = MUTCOLORS
 	chassis_bodyparts = list(
 		BODY_ZONE_HEAD = /obj/item/bodypart/head/ipc/pgf,
@@ -454,9 +452,13 @@
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/ipc/pgf/type_d,
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/ipc/pgf/type_d,
 	)
+	chassis_alternate_bodyparts = list(
+		BODY_ZONE_L_LEG = list(/obj/item/bodypart/leg/left/ipc/pgf),
+		BODY_ZONE_R_LEG = list(/obj/item/bodypart/leg/right/ipc/pgf),
+	)
 
 /datum/sprite_accessory/ipc_chassis/sprinter
-	name = "Inteq Mothership 'Sprinter' Type 1"
+	name = "Inteq Mothership 'Sprinter'"
 	chassis_bodyparts = list(
 		BODY_ZONE_HEAD = /obj/item/bodypart/head/ipc/sprinter,
 		BODY_ZONE_CHEST = /obj/item/bodypart/chest/ipc/sprinter,
@@ -465,16 +467,8 @@
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/ipc/sprinter,
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/ipc/sprinter,
 	)
-
-/datum/sprite_accessory/ipc_chassis/sprinter_v2
-	name = "Inteq Mothership 'Sprinter' Type 2"
-	chassis_bodyparts = list(
-		BODY_ZONE_HEAD = /obj/item/bodypart/head/ipc/sprinter/type_2,
-		BODY_ZONE_CHEST = /obj/item/bodypart/chest/ipc/sprinter,
-		BODY_ZONE_L_ARM = /obj/item/bodypart/l_arm/ipc/sprinter,
-		BODY_ZONE_R_ARM = /obj/item/bodypart/r_arm/ipc/sprinter,
-		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/ipc/sprinter,
-		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/ipc/sprinter,
+	chassis_alternate_bodyparts = list(
+		BODY_ZONE_HEAD = list(/obj/item/bodypart/head/ipc/sprinter/type_2)
 	)
 
 /datum/sprite_accessory/ipc_chassis/seeker

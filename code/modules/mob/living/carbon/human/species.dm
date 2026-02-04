@@ -242,6 +242,9 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/robot/surplus,
 	)
 
+	/// Alternative bodypart options for this species. This should be an associated list of each body zone and a list of options for that zone.
+	var/list/obj/item/bodypart/species_alternate_limbs = list()
+
 	var/obj/item/organ/heart/robotic_heart = /obj/item/organ/heart/cybernetic
 	var/obj/item/organ/lungs/robotic_lungs = /obj/item/organ/lungs/cybernetic
 	var/obj/item/organ/eyes/robotic_eyes = /obj/item/organ/eyes/robotic
@@ -315,6 +318,19 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 		randname += " [pick(GLOB.last_names)]"
 
 	return randname
+
+/**
+ * Selects a random body zone to be a prosthetic.
+ */
+/datum/species/proc/random_prosthetic()
+	var/list/zone_options
+	for(var/zone in species_robotic_limbs)
+		if(zone == BODY_ZONE_CHEST)
+			continue
+		if(zone == BODY_ZONE_HEAD)
+			continue
+		zone_options += zone
+	return pick(zone_options)
 
 /**
  * Copies some vars and properties over that should be kept when creating a copy of this species.
@@ -708,12 +724,12 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 				if(!HAS_TRAIT(H, TRAIT_EYESCLOSED) && !(H.stat == DEAD))
 
 					if(iskepori(H)) // Kepori need sclera but don't fit the normal silhouette, so this needs changing. Make better later.
-						eye_overlay = mutable_appearance('icons/mob/species/kepori/kepori_eyes.dmi', eyes.eye_icon_state, -BODYPARTS_LAYER)
-						sclera_overlay = mutable_appearance('icons/mob/species/kepori/kepori_eyes.dmi', eyes.sclera_icon_state, -BODYPARTS_LAYER)
+						eye_overlay = mutable_appearance('icons/mob/species/kepori/kepori_eyes.dmi', eyes.eye_icon_state, -BODY_LAYER)
+						sclera_overlay = mutable_appearance('icons/mob/species/kepori/kepori_eyes.dmi', eyes.sclera_icon_state, -BODY_LAYER)
 
 					else
-						eye_overlay = mutable_appearance(species_eye_path || 'icons/mob/human_face.dmi', eyes.eye_icon_state, -BODYPARTS_LAYER)
-						sclera_overlay = mutable_appearance('icons/mob/human_face.dmi', eyes.sclera_icon_state, -BODYPARTS_LAYER)
+						eye_overlay = mutable_appearance(species_eye_path || 'icons/mob/human_face.dmi', eyes.eye_icon_state, -BODY_LAYER)
+						sclera_overlay = mutable_appearance('icons/mob/human_face.dmi', eyes.sclera_icon_state, -BODY_LAYER)
 
 					if(HD.greyscale_eyes && eyes)
 						eye_overlay.color = "#" + H.eye_color
@@ -902,8 +918,12 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 			body_part = H.bodyparts[zone]
 			if(!body_part)
 				continue
-			if(body_part.bodytype & BODYTYPE_DIGITIGRADE)
-				body_part.plantigrade_forced = !show_digitigrade
+			if(!(body_part.bodytype & BODYTYPE_DIGITIGRADE))
+				continue
+			if(!show_digitigrade)
+				body_part.bodypart_flags |= BODYPART_FORCED_PLANTIGRADE
+			else
+				body_part.bodypart_flags &= ~BODYPART_FORCED_PLANTIGRADE
 
 	///End digi handling
 

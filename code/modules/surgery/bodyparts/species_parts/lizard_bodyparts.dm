@@ -26,23 +26,27 @@
 	limb_id = SPECIES_SARATHI
 
 /obj/item/bodypart/leg/left/lizard
+	name = "sarathi plantigrade left leg"
 	icon = 'icons/mob/species/lizard/bodyparts.dmi'
 	icon_state = "sarathi_l_leg"
 	uses_mutcolor = TRUE
 	limb_id = SPECIES_SARATHI
 
 /obj/item/bodypart/leg/right/lizard
+	name = "sarathi plantigrade right leg"
 	icon = 'icons/mob/species/lizard/bodyparts.dmi'
 	icon_state = "sarathi_r_leg"
 	uses_mutcolor = TRUE
 	limb_id = SPECIES_SARATHI
 
 /obj/item/bodypart/leg/left/lizard/digitigrade
+	name = "sarathi digitigrade left leg"
 	icon = 'icons/mob/species/lizard/bodyparts.dmi'
 	icon_state = "sarathi_l_leg_digitigrade"
 	bodytype = BODYTYPE_HUMANOID | BODYTYPE_ORGANIC | BODYTYPE_DIGITIGRADE
 
 /obj/item/bodypart/leg/right/lizard/digitigrade
+	name = "sarathi digitigrade right leg"
 	icon = 'icons/mob/species/lizard/bodyparts.dmi'
 	icon_state = "sarathi_r_leg_digitigrade"
 	bodytype = BODYTYPE_HUMANOID | BODYTYPE_ORGANIC | BODYTYPE_DIGITIGRADE
