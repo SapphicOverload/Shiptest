@@ -129,9 +129,9 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		READ_FILE(S["feature_ipc_chassis"], ipc_chassis)
 		switch(ipc_chassis)
 			if("PGF Mechanics Type-P", "PGF Mechanics Type-D")
-				features["feature_ipc_chassis"] = "PGF Mechanics"
+				features["ipc_chassis"] = "PGF Mechanics"
 			if("Inteq Mothership 'Sprinter' Type 1", "Inteq Mothership 'Sprinter' Type 2")
-				features["feature_ipc_chassis"] = "Inteq Mothership 'Sprinter'"
+				features["ipc_chassis"] = "Inteq Mothership 'Sprinter'"
 		var/list/prosthetic_limbs
 		READ_FILE(S["prosthetic_limbs"], prosthetic_limbs)
 		for(var/zone in prosthetic_limbs)
