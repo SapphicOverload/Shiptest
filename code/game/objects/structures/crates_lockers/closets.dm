@@ -571,7 +571,7 @@
 
 
 /obj/structure/closet/return_temperature()
-	return
+	return return_air()?.return_temperature()
 
 /obj/structure/closet/proc/dive_into(mob/living/user)
 	var/turf/T1 = get_turf(user)

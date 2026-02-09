@@ -109,6 +109,9 @@
 /turf/open/space/remove_air_ratio(amount)
 	return null
 
+/turf/open/space/GetHeatCapacity()
+	return HEAT_CAPACITY_VACUUM
+
 /// Checks if the turf's starlight should change, given a turf within 1 tile (including itself) that has changed since starlight was last valid.
 /turf/open/space/proc/check_starlight(turf/changed_turf)
 	// Non-space turfs cause us to start emitting or update our light.

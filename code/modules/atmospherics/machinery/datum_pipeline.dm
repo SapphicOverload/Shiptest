@@ -185,7 +185,7 @@
 	if(isopenturf(target))
 
 		var/turf/open/modeled_location = target
-		target_temperature = modeled_location.GetTemperature()
+		target_temperature = modeled_location.return_temperature()
 		target_heat_capacity = modeled_location.GetHeatCapacity()
 
 		if(modeled_location.blocks_air)

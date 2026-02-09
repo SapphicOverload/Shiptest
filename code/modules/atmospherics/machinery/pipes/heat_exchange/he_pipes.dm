@@ -20,23 +20,11 @@
 	. = ..()
 
 /obj/machinery/atmospherics/pipe/heat_exchanging/process_atmos(seconds_per_tick)
-	var/environment_temperature = 0
+	var/environment_temperature = return_temperature()
 	var/datum/gas_mixture/pipe_air = return_air()
 
-	var/turf/T = loc
-	if(istype(T))
-		if(islava(T))
-			environment_temperature = 5000
-		else if(T.blocks_air)
-			environment_temperature = T.return_temperature()
-		else
-			var/turf/open/OT = T
-			environment_temperature = OT.GetTemperature()
-	else
-		environment_temperature = T.return_temperature()
-
 	if(abs(environment_temperature-pipe_air.return_temperature()) > minimum_temperature_difference)
-		parent.temperature_interact(T, volume, thermal_conductivity)
+		parent.temperature_interact(get_turf(src), volume, thermal_conductivity)
 
 
 	//heatup/cooldown any mobs buckled to ourselves based on our temperature

@@ -167,8 +167,8 @@
 /turf/open/proc/GetHeatCapacity()
 	. = air.heat_capacity()
 
-/turf/open/proc/GetTemperature()
-	. = air.return_temperature()
+/turf/open/return_temperature()
+	return air.return_temperature()
 
 /turf/open/proc/TakeTemperature(temp)
 	air.set_temperature(air.return_temperature() + temp)

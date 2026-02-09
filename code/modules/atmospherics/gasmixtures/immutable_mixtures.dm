@@ -17,9 +17,6 @@
 /datum/gas_mixture/immutable/space
 	initial_temperature = TCMB
 
-/datum/gas_mixture/immutable/space/populate()
-	set_min_heat_capacity(HEAT_CAPACITY_VACUUM)
-
 //used by cloners
 /datum/gas_mixture/immutable/cloner
 	initial_temperature = T20C

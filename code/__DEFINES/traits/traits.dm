@@ -526,6 +526,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_BLOODY_MESS "bloody_mess" //from heparin, makes open bleeding wounds rapidly spill more blood
 #define TRAIT_COAGULATING "coagulating" //from coagulant reagents, this doesn't affect the bleeding itself but does affect the bleed warning messages
 #define TRAIT_NOBLEED "nobleed" //This carbon doesn't bleed
+/// Ignores cooling from standing on space turfs.
+#define TRAIT_NO_SPACE_COOLING "no_space_cooling"
 
 #define TRAIT_FORCED_STANDING "forcedstanding"
 

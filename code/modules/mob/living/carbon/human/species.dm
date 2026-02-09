@@ -1836,12 +1836,17 @@ GLOBAL_LIST_EMPTY(roundstart_races)
  */
 /datum/species/proc/handle_environment(datum/gas_mixture/environment, mob/living/carbon/human/H)
 	var/areatemp = H.get_temperature(environment)
+	var/environment_temp_change
+	if(isspaceturf(H.loc) && !HAS_TRAIT(H, TRAIT_NO_SPACE_COOLING)) // evil hack
+		environment_temp_change = areatemp - H.bodytemperature
+	else
+		environment_temp_change *= min(1, environment.heat_capacity() / environment.return_volume())
 
 	if(H.stat != DEAD) // If you are dead your body does not stabilize naturally
 		bodytemp_natural_stabilization = natural_bodytemperature_stabilization(environment, H)
 
-	if(!H.on_fire || areatemp > H.bodytemperature) // If we are not on fire or the area is hotter
-		bodytemp_environment_change = H.adjust_bodytemperature((areatemp - H.bodytemperature), use_insulation=TRUE, use_steps=TRUE, hardsuit_fix=bodytemp_normal - H.bodytemperature)
+	if(environment_temp_change && (!H.on_fire || areatemp > H.bodytemperature)) // If we are not on fire or the area is hotter
+		bodytemp_environment_change = H.adjust_bodytemperature(environment_temp_change, use_insulation=TRUE, use_steps=TRUE, hardsuit_fix=bodytemp_normal - H.bodytemperature)
 
 	if(H.check_for_seal())
 		return

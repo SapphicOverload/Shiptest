@@ -119,10 +119,10 @@
 	return TRUE
 
 /turf/open/lava/GetHeatCapacity()
-	. = 700000
+	return 700000
 
-/turf/open/lava/GetTemperature()
-	. = 5000
+/turf/open/lava/return_temperature()
+	return 5000
 
 /turf/open/lava/TakeTemperature(temp)
 

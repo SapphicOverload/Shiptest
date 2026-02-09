@@ -1241,7 +1241,7 @@
 
 ///Return atom temperature
 /atom/proc/return_temperature()
-	return
+	return loc.return_temperature()
 
 /**
  *Tool behavior procedure. Redirects to tool-specific procs by default.

@@ -4,7 +4,15 @@
 	species_age_min = 0
 	species_age_max = 300
 	species_traits = list(HAIR,NOTRANSSTING,NO_DNA_COPY,NOZOMBIE,MUTCOLORS,REVIVESBYHEALING,NOHUSK,NOMOUTH) //all of these + whatever we inherit from the real species
-	inherent_traits = list(TRAIT_RESISTCOLD,TRAIT_VIRUSIMMUNE,TRAIT_NOBREATH,TRAIT_RADIMMUNE,TRAIT_GENELESS,TRAIT_LIMBATTACHMENT)
+	inherent_traits = list(
+		TRAIT_NO_SPACE_COOLING,
+		TRAIT_RESISTCOLD,
+		TRAIT_VIRUSIMMUNE,
+		TRAIT_NOBREATH,
+		TRAIT_RADIMMUNE,
+		TRAIT_GENELESS,
+		TRAIT_LIMBATTACHMENT,
+	)
 	inherent_biotypes = MOB_ROBOTIC|MOB_HUMANOID
 	mutantbrain = /obj/item/organ/brain/mmi_holder/posibrain
 	mutanteyes = /obj/item/organ/eyes/robotic
@@ -75,6 +83,7 @@
 				change_screen = new
 				change_screen.Grant(H)
 		C.RegisterSignal(C, COMSIG_PROCESS_BORGCHARGER_OCCUPANT, TYPE_PROC_REF(/mob/living/carbon, charge))
+	C.clear_alert("pressure")
 
 /datum/species/ipc/on_species_loss(mob/living/carbon/C)
 	. = ..()
@@ -97,6 +106,19 @@
 		return
 	C.dna.features["ipc_screen"] = null // Turns off their monitor on death.
 	C.update_body()
+
+// Machines are affected by the vacuum of space in fundamentally different ways.
+/datum/species/ipc/handle_environment_pressure(datum/gas_mixture/environment, mob/living/carbon/human/toaster)
+	if(toaster.stat == DEAD)
+		return
+	var/adjusted_pressure = toaster.calculate_affecting_pressure(environment.return_pressure())
+	if(adjusted_pressure < WARNING_LOW_PRESSURE && !HAS_TRAIT(toaster, TRAIT_RESISTLOWPRESSURE))
+		var/equilibrium_temp = bodytemp_heat_damage_limit + (HAZARD_LOW_PRESSURE - adjusted_pressure) * 2
+		if(equilibrium_temp > toaster.bodytemperature)
+			toaster.adjust_bodytemperature(HUMAN_BODYTEMP_AUTORECOVERY_MINIMUM, max_temp = equilibrium_temp)
+		bodytemp_autorecovery_min = HUMAN_BODYTEMP_AUTORECOVERY_MINIMUM * (1 - (WARNING_LOW_PRESSURE - adjusted_pressure) / WARNING_LOW_PRESSURE)
+	else
+		bodytemp_autorecovery_min = HUMAN_BODYTEMP_AUTORECOVERY_MINIMUM
 
 /datum/action/innate/change_screen
 	name = "Change Display"
