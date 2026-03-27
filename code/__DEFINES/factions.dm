@@ -10,9 +10,10 @@
 #define FACTION_WARRA "Makosso-Warra Corporation"
 	#define FACTION_NS_LOGI "N+S Logistics"
 	#define FACTION_VIGILITAS "Vigilitas Interstellar"
-#define FACTION_FRONTIERSMEN "Frontiersmen Fleet"
+#define FACTION_FRONTIERSMEN "New Frontiersmen"
 #define FACTION_PGF "Pan-Gezena Federation"
 #define FACTION_ZOHIL "Zohil Explorat"
+#define FACTION_TECETI "Riso-Teceti"
 #define FACTION_INDEPENDENT "Independent"
 #define FACTION_RAMZI "Ramzi Clique"
 #define FACTION_UNKNOWN "Unknown"
@@ -32,6 +33,7 @@
 #define PREFIX_FRONTIERSMEN list("FFV")
 #define PREFIX_PGF list("PGF", "PGFMC", "PGFN", "PGFS")
 #define PREFIX_ZOHIL list("ZESV")
+#define PREFIX_TECETI list("RTSV")
 #define PREFIX_INDEPENDENT list("SV", "IMV", "ISV", "MSV")
 #define PREFIX_RAMZI list("RCSV")
 #define PREFIX_NONE list()
@@ -39,3 +41,12 @@
 #define FACTION_SORT_INDEPENDENT 100 // Independents first because of majority
 #define FACTION_SORT_DEFAULT 50 // Everything else in the middle
 #define FACTION_SORT_ASPAWN 0 // Frontiersmen and Ramzi on the bottom because of rarity
+
+/// Restricts a faction to using the specified set of prefixes.
+#define FACTION_CHECK_PREFIX (1<<0)
+/// Prevents a faction being automatically added to the wiki.
+#define FACTION_WIKI_HIDDEN (1<<1)
+/// Whether this faction can be selected by players.
+#define FACTION_PLAYER_SELECT (1<<2)
+/// Associating with this faction will display it on the player's ID as a citizenship. (TO BE IMPLEMENTED)
+#define FACTION_CITIZENSHIP (1<<3)

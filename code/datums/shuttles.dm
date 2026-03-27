@@ -30,7 +30,7 @@
 	var/ship_class = "Ship"
 	/// The name of the ship's manufacturer.
 	var/manufacturer = "Unknown"
-	/// The faction this ship belongs to.
+	/// The faction this ship belongs to, load_ship_templates() will attempt to set this to an instance of the given type.
 	var/datum/faction/faction
 	/// Whether or not players from other ships can open airlocks.
 	var/unique_ship_access = TRUE

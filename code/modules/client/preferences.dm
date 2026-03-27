@@ -175,6 +175,9 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	/// Languages this character knows besides their native language.
 	var/list/learned_languages = list()
 
+	/// Factions this character is associated with.
+	var/list/factions = list()
+
 	/// This character's native language.
 	var/datum/language/native_language = /datum/language/galactic_common
 
@@ -398,17 +401,27 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 					continue
 				dat += "<tr><td><b>[initial(lang_type.name)]: </b></td>"
 				dat += "<td><a href='byond://?_src_=prefs;preference=learned_language;task=input;language=[REF(GLOB.language_datum_instances[lang_type])]'>[learned_languages[lang_type]]</a></td></tr>"
-			dat += "<tr><td><a href='byond://?_src_=prefs;preference=reset_languages;task=input'>Reset Languages</a></td></tr></table></td>"
+			dat += "<tr><td><a href='byond://?_src_=prefs;preference=reset_languages;task=input'>Reset Languages</a></td></tr></table></td></tr>"
 
-			dat += "</tr></table>"
-
-			dat += "<h2>Clothing</h2>"
+			dat += "<tr><td><h2>Clothing</h2>"
 
 			dat += "<b>Backpack:</b><BR><a href ='?_src_=prefs;preference=bag;task=input'>[backpack]</a>"
 
 			dat += "<br><b>Jumpsuit Style:</b><BR><a href ='?_src_=prefs;preference=suit;task=input'>[jumpsuit_style]</a>"
 
-			dat += "<br><b>Outerwear Style:</b><BR><a href ='?_src_=prefs;preference=exo;task=input'>[exowear]</a>"
+			dat += "<br><b>Outerwear Style:</b><BR><a href ='?_src_=prefs;preference=exo;task=input'>[exowear]</a></td>"
+
+			dat += "<td><h2>Factional Associations</h2><table>"
+			if(factions.len)
+				var/datum/faction/faction
+				for(var/faction_type as anything in factions)
+					faction = SSfactions.playable_factions[faction_type]
+					dat += "<tr><td>[faction.name]</td><td><a href='byond://?_src_=prefs;preference=remove_faction;task=input;faction=[REF(faction)]'>Remove</a></td></tr>"
+			else
+				dat += "<tr><td>Unaffiliated - None Selected</td></tr>"
+			dat += "<tr><td><a href='byond://?_src_=prefs;preference=add_faction;task=input'>Add Faction</a></td></tr></table></td></tr>"
+
+			dat += "</tr></table>"
 
 		if(1) //Character Appearance
 			if(path)
@@ -1533,6 +1546,43 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 		new_language_list[lang_type] = language_list[lang_type]
 	return new_language_list
 
+/datum/preferences/proc/sanitize_factions(list/faction_list)
+	var/list/new_faction_list = list()
+	for(var/datum/faction/faction_type as anything in faction_list)
+		if(!(faction_type::flags & FACTION_PLAYER_SELECT))
+			continue
+		if(!new_faction_list)
+			new_faction_list = list(faction_type)
+			continue
+		var/faction_allowed = TRUE
+		for(var/other_type in new_faction_list)
+			if(!is_valid_faction(other_type, new_faction_list))
+				faction_allowed = FALSE
+				break
+		if(!faction_allowed)
+			continue
+		new_faction_list |= faction_type
+	return new_faction_list
+
+/// Checks whether a given faction typepath is valid for any selected factions. Alternatively can be given a list instead of checking selected.
+/datum/preferences/proc/is_valid_faction(faction_type, list/faction_list)
+	var/datum/faction/faction_checked = SSfactions.factions[faction_type]
+	if(!faction_checked)
+		return FALSE
+	var/datum/faction/faction_iter
+	faction_list ||= factions
+	if(!faction_list?.len)
+		return TRUE
+	for(var/type_iter in faction_list)
+		faction_iter = SSfactions.factions[type_iter]
+		if(!faction_iter)
+			continue
+		if(faction_checked.allowed_faction(faction_iter) || faction_iter.allowed_faction(faction_checked))
+			return TRUE
+		if((faction_checked.flags & FACTION_CITIZENSHIP) && !(faction_iter.flags & FACTION_CITIZENSHIP))
+			return TRUE
+	return FALSE
+
 /datum/preferences/proc/get_language_point_balance()
 	var/points_balance = MAX_LANGUAGE_POINTS
 	for(var/datum/language/lang_type as anything in learned_languages)
@@ -2165,6 +2215,41 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 
 				if("reset_languages")
 					learned_languages = sanitize_learned_languages()
+
+				if("remove_faction")
+					var/datum/faction/removed_faction = locate(href_list["faction"])
+					if(!removed_faction)
+						CRASH("[usr] tried to remove a non-existant faction from their preferences, or the faction instance did not exist!")
+					factions -= removed_faction.type
+
+				if("add_faction")
+					var/list/faction_list = list()
+					for(var/faction_type in SSfactions.playable_factions)
+						if(faction_type in factions)
+							continue
+						if(!is_valid_faction(faction_type))
+							continue
+						faction_list[SSfactions.playable_factions[faction_type].name] = faction_type
+					if(!faction_list.len)
+						to_chat(usr, span_warning("No available factions!"))
+						return
+					var/datum/faction/selected_faction = faction_list[tgui_input_list(
+						usr,
+						"Select a faction to add.",
+						"Factional Association",
+						faction_list,
+					)]
+					if(!selected_faction)
+						return
+					if(!(selected_faction::flags & FACTION_PLAYER_SELECT))
+						var/err_msg = "[usr] attempted to add [selected_faction] as a faction, despite it not being player-selectable!"
+						message_admins(err_msg)
+						CRASH(err_msg)
+					if(selected_faction in factions)
+						var/err_msg = "[usr] attempted to add [selected_faction] as a faction, despite it already being selected!"
+						message_admins(err_msg) // would be fucked up if you could use tgui exploits to make the list so long with duplicates the server crashes
+						CRASH(err_msg)
+					factions |= selected_faction
 
 				if ("clientfps")
 					var/desiredfps = input(user, "Choose your desired fps. (0 = default, 60 FPS))", "Character Preference", clientfps)  as null|num //WS Edit - Client FPS Tweak -

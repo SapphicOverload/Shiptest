@@ -232,7 +232,7 @@ SUBSYSTEM_DEF(mapping)
 		if(istext(data["manufacturer"]))
 			S.manufacturer = data["manufacturer"]
 
-		if(S.faction.check_prefix && !(S.prefix in S.faction.prefixes))
+		if((S.faction.flags & FACTION_CHECK_PREFIX) && !(S.prefix in S.faction.prefixes))
 			stack_trace("Faction prefix mismatch for [S.faction.name]: [data["prefix"]] on [S.name]'s config!")
 
 		if(!S.prefix)

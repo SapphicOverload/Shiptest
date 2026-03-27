@@ -29,7 +29,7 @@
 		var/datum/faction/current = SSfactions.factions[faction_type]
 		var/list/subfactions = factions[faction_type]
 
-		if(current.wiki_hidden)
+		if(current.flags & FACTION_WIKI_HIDDEN)
 			continue
 		if(!length(subfactions))
 			output += generate_row(current, subfactions, FALSE)

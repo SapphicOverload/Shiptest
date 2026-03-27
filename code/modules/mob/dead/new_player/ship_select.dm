@@ -56,11 +56,24 @@
 				to_chat(spawnee, span_warning("You cannot join this ship anymore, as its join mode has changed!"))
 				return
 
+			var/datum/preferences/player_prefs = spawnee.client.prefs
 			var/datum/faction/registered_faction = target.shuttle_port.registered_faction
-			var/datum/language/official_lang = initial(registered_faction.official_language)
-			if(official_lang != spawnee.client.prefs.native_language && spawnee.client.prefs.learned_languages[official_lang] != LANGUAGE_FLUENT && \
+			var/datum/language/official_lang = registered_faction.official_language
+			if(official_lang != player_prefs.native_language && player_prefs.learned_languages[official_lang] != LANGUAGE_FLUENT && \
 				tgui_alert(spawnee, "Your character does not fully understand this faction's official language ([initial(official_lang.name)]), are you sure?", "Official language", list("Yes", "No")) != "Yes")
-				return // pop-up warning for new players that forgot to set their
+				return // pop-up warning for new players that forgot to set their language
+
+			var/list/hostile_factions = list()
+			for(var/datum/faction/faction_type as anything in player_prefs.factions)
+				if(registered_faction.is_hostile_to(faction_type))
+					hostile_factions += faction_type::name
+
+			if(hostile_factions.len && tgui_alert(
+				spawnee,
+				"[registered_faction.name] is hostile to [english_list(hostile_factions)], are you sure?",
+				"Factional Association",
+				list("Yes", "No"),
+			) != "Yes") return // warns players when joining a ship hostile to any factions they've selected for their character
 
 			ui.close()
 			var/datum/job/selected_job = locate(params["job"]) in target.job_slots

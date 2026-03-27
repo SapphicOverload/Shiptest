@@ -3,6 +3,7 @@ SUBSYSTEM_DEF(factions)
 	init_order = INIT_ORDER_FACTION
 	flags = SS_NO_FIRE
 	var/list/datum/faction/factions = list()
+	var/list/datum/faction/playable_factions = list()
 	var/list/faction_prefixes = list()
 
 /datum/controller/subsystem/factions/Initialize(timeofday)
@@ -14,7 +15,8 @@ SUBSYSTEM_DEF(factions)
 				var/datum/faction/other_faction = faction_prefixes[prefix]
 				stack_trace("Duplicate ship prefix: [prefix] for [faction.name] and [other_faction.name]")
 			faction_prefixes[prefix] = faction
-
+		if(faction.flags & FACTION_PLAYER_SELECT)
+			playable_factions[path] = faction
 	return ..()
 
 /datum/controller/subsystem/factions/proc/ship_prefix_to_faction(prefix)
