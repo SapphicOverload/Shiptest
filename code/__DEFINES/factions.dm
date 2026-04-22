@@ -13,7 +13,7 @@
 #define FACTION_FRONTIERSMEN "New Frontiersmen"
 #define FACTION_PGF "Pan-Gezena Federation"
 #define FACTION_ZOHIL "Zohil Explorat"
-#define FACTION_TECETI "Riso-Teceti"
+#define FACTION_TECETI "Unified Teceti Federation"
 #define FACTION_INDEPENDENT "Independent"
 #define FACTION_RAMZI "Ramzi Clique"
 #define FACTION_UNKNOWN "Unknown"
@@ -48,5 +48,5 @@
 #define FACTION_WIKI_HIDDEN (1<<1)
 /// Whether this faction can be selected by players.
 #define FACTION_PLAYER_SELECT (1<<2)
-/// Associating with this faction will display it on the player's ID as a citizenship. (TO BE IMPLEMENTED)
+/// Associating with this faction will display it on the player's ID. You can always select at least one of these regardless of other associations.
 #define FACTION_CITIZENSHIP (1<<3)

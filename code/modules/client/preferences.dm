@@ -1016,18 +1016,19 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 
 			dat += "<tr><td colspan=3><hr></td></tr>"
 			dat += "<tr><td><b>Name</b></td>"
-			dat += "<td><b>Restricted Jobs</b></td>"
+			dat += "<td><b>Restricted Factions</b></td>"
 			dat += "<td><b>Description</b></td>"
 			dat += "<tr><td colspan=3><hr></td></tr>"
+			var/datum/gear/G
 			for(var/gear_name in LC.gear)
-				var/datum/gear/G = LC.gear[gear_name]
+				G = LC.gear[gear_name]
 				dat += "<tr style='vertical-align:top;'><td width=20%><a style='white-space:normal;' [(G.display_name in equipped_gear) ? "class='linkOn' " : ""]href='byond://?_src_=prefs;preference=gear;toggle_gear=[G.display_name]'>[G.display_name]</a></td><td>"
-				if(G.allowed_roles)
+				if(G.allowed_factions)
 					dat += "<font size=2>"
-					var/list/allowedroles = list()
-					for(var/role in G.allowed_roles)
-						allowedroles += role
-					dat += english_list(allowedroles, null, ", ")
+					var/list/faction_names = list()
+					for(var/datum/faction/faction as anything in G.allowed_factions)
+						faction_names += faction::name
+					dat += english_list(faction_names, null, ", ")
 					dat += "</font>"
 				dat += "</td><td><font size=2><i>[G.description]</i></font></td></tr>"
 			dat += "</table>"
@@ -1564,30 +1565,36 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 		new_faction_list |= faction_type
 	return new_faction_list
 
-/// Checks whether a given faction typepath is valid for any selected factions. Alternatively can be given a list instead of checking selected.
+/// Checks whether a given faction is compatible with any selected factions. Alternatively can be given a list instead of checking selected.
 /datum/preferences/proc/is_valid_faction(faction_type, list/faction_list)
 	var/datum/faction/faction_checked = SSfactions.factions[faction_type]
 	if(!faction_checked)
-		return FALSE
-	var/datum/faction/faction_iter
+		CRASH("is_valid_faction could not find an instance of '[faction_type]'!")
 	faction_list ||= factions
 	if(!faction_list?.len)
 		return TRUE
+	var/has_citizenship = FALSE
+	var/datum/faction/faction_iter
 	for(var/type_iter in faction_list)
 		faction_iter = SSfactions.factions[type_iter]
 		if(!faction_iter)
 			continue
 		if(faction_checked.allowed_faction(faction_iter) || faction_iter.allowed_faction(faction_checked))
 			return TRUE
-		if((faction_checked.flags & FACTION_CITIZENSHIP) && !(faction_iter.flags & FACTION_CITIZENSHIP))
-			return TRUE
+		if(faction_iter.flags & FACTION_CITIZENSHIP)
+			has_citizenship = TRUE
+			continue
+	if(!has_citizenship && (faction_checked.flags & FACTION_CITIZENSHIP))
+		return TRUE
+	if(has_citizenship && faction_list.len == 1 && !(faction_checked.flags & FACTION_CITIZENSHIP))
+		return TRUE
 	return FALSE
 
 /datum/preferences/proc/get_language_point_balance()
 	var/points_balance = MAX_LANGUAGE_POINTS
 	for(var/datum/language/lang_type as anything in learned_languages)
 		if(lang_type == native_language)
-			continue // this should happen but just in case
+			continue // this shouldn't happen but just in case
 		points_balance -= language_level_costs[learned_languages[lang_type]]
 	if("Trilingual" in all_quirks)
 		points_balance += 2
@@ -1695,6 +1702,15 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 				if(length(equipped_gear) >= CONFIG_GET(number/max_loadout_items))
 					alert(user, "You can't have more than [CONFIG_GET(number/max_loadout_items)] items in your loadout!")
 					return
+				if(TG.allowed_factions)
+					var/is_allowed = FALSE
+					for(var/datum/faction/faction_type as anything in TG.allowed_factions)
+						if(is_valid_faction(faction_type, factions))
+							is_allowed = TRUE
+							break
+					if(!is_allowed)
+						alert(user, "Your character is not associated with this faction!")
+						return
 				var/list/type_blacklist = list()
 				var/list/slot_blacklist = list()
 				for(var/gear_name in equipped_gear)

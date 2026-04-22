@@ -297,6 +297,12 @@
 			C.assignment = J.name
 		if(H.age)
 			C.registered_age = H.age
+		if(preference_source?.prefs.factions.len)
+			// I'm going to assume no government faction will have another government in its allowed_factions list
+			for(var/datum/faction/faction_type as anything in preference_source.prefs.factions)
+				if(faction_type.flags & FACTION_CITIZENSHIP)
+					C.citizenship = SSfactions.playable_factions[faction_type]
+					break
 		C.job_icon = job_icon
 		C.faction_icon = faction_icon
 		C.update_appearance()

@@ -101,12 +101,7 @@
 	prefixes = PREFIX_NONE
 	flags = FACTION_WIKI_HIDDEN | FACTION_PLAYER_SELECT
 	allowed_factions = list(
-		/datum/faction/syndicate,
-		/datum/faction/solgov,
 		/datum/faction/suns,
-		/datum/faction/clip,
-		/datum/faction/pgf,
-		/datum/faction/teceti,
 	)
 	hostile_factions = list(
 		/datum/faction/warra,
@@ -119,11 +114,7 @@
 	prefixes = PREFIX_NONE
 	flags = FACTION_WIKI_HIDDEN | FACTION_PLAYER_SELECT
 	allowed_factions = list(
-		/datum/faction/syndicate,
-		/datum/faction/solgov,
-		/datum/faction/clip,
-		/datum/faction/pgf,
-		/datum/faction/teceti,
+		/datum/faction/suns,
 	)
 	hostile_factions = list(
 		/datum/faction/warra,
@@ -232,7 +223,7 @@
 		/datum/faction/ramzi,
 		/datum/faction/pgf
 	)
-	flags = FACTION_CHECK_PREFIX | FACTION_PLAYER_SELECT | FACTION_CITIZENSHIP
+	flags = FACTION_CHECK_PREFIX | FACTION_WIKI_HIDDEN | FACTION_PLAYER_SELECT | FACTION_CITIZENSHIP
 	color = "#6b2ba0"
 
 /datum/faction/teceti

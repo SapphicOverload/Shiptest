@@ -48,8 +48,8 @@ GLOBAL_LIST_EMPTY(gear_datums)
 	var/path
 	///Slot to equip to.
 	var/slot
-	///Roles that can spawn with this item.
-	var/list/allowed_roles
+	///Faction/Citizenship required to spawn with this item
+	var/list/allowed_factions
 	///Stop certain species from receiving this gear
 	var/list/species_blacklist
 	///Only allow certain species to receive this gear

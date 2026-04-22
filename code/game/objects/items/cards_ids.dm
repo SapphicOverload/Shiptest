@@ -146,6 +146,8 @@
 	var/uses_overlays = TRUE
 	var/icon/cached_flat_icon
 	var/registered_age = 18 // default age for ss13 players
+	/// The registered citizenship on this ID card
+	var/datum/faction/citizenship
 	var/job_icon
 	var/faction_icon
 	var/officer = FALSE // Whether the ID belongs to an officer, set in /datum/job/proc/equip
@@ -167,6 +169,8 @@
 			id_info += "JOB: [assignment]"
 		if(registered_name)
 			id_info += "NAME: [registered_name]"
+		if(citizenship)
+			id_info += "CITIZENSHIP: [citizenship.name]"
 		if(id_info)
 			id_message += id_info.Join(", ")
 		var/self_message = span_notice("You show [id_message]")
@@ -191,6 +195,9 @@
 	if(registered_age)
 		. += "<B>AGE:</B>"
 		. += "[registered_age] years old [(registered_age < AGE_DRINKING) ? "There's a holographic stripe that reads <b>[span_danger("'DO NOT SERVE ALCOHOL OR TOBACCO'")]</b> along the bottom of the card." : ""]"
+	if(citizenship)
+		. += "<B>CITIZENSHIP:</B>"
+		. += "[citizenship.name]"
 	if(length(ship_access))
 		var/list/ship_factions = list()
 		var/list/ship_names = list()
@@ -198,7 +205,7 @@
 			ship_factions |= ship.source_template.faction.name
 			ship_names += ship.name
 
-		. += "<B>FACTION ACCESS:</B>"
+		. += "<B>EMPLOYER:</B>"
 		. += "[ship_factions.Join(", ")]"
 
 		. += "<B>SHIP ACCESS:</B>"
