@@ -262,8 +262,8 @@
 /obj/item/reagent_containers/syringe/contraband/crank
 	list_reagents = list(/datum/reagent/drug/crank = 15)
 
-/obj/item/reagent_containers/syringe/contraband/methamphetamine
-	list_reagents = list(/datum/reagent/drug/methamphetamine = 15)
+/obj/item/reagent_containers/syringe/contraband/rahkrahene
+	list_reagents = list(/datum/reagent/drug/rahkrahene = 15)
 
 /obj/item/reagent_containers/syringe/contraband/mammoth
 	list_reagents = list(/datum/reagent/drug/mammoth = 15)
@@ -273,7 +273,7 @@
 
 /obj/item/reagent_containers/syringe/pancrazine
 	name = "syringe (pancrazine)"
-	desc = "Contains pancrazine, used to treat toxins and purge chemicals. The tag on the syringe states 'Heat before injection'."
+	desc = "Contains pancrazine, used to treat toxins."
 	list_reagents = list(/datum/reagent/medicine/pancrazine = 15)
 
 /obj/item/reagent_containers/syringe/charcoal

@@ -164,6 +164,11 @@
 	flags = FACTION_CHECK_PREFIX | FACTION_PLAYER_SELECT | FACTION_CITIZENSHIP
 	color = "#3F90DF"
 
+/datum/faction/clip/cmm
+	name = FACTION_MINUTEMEN
+	short_name = "CLIP Minutemen"
+	prefixes = PREFIX_MINUTEMEN
+
 /datum/faction/warra
 	name = FACTION_WARRA
 	short_name = "MAKOSSO-WARRA"
