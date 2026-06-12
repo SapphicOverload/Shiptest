@@ -135,6 +135,16 @@
 	display_name = "track jacket, colorable"
 	path = /obj/item/clothing/suit/toggle/track
 
+/datum/gear/suit/jacket/pgfn
+	display_name = "silkenweave jacket, navy"
+	path = /obj/item/clothing/suit/toggle/gezena
+	allowed_factions = list(/datum/faction/pgf)
+
+/datum/gear/suit/jacket/pgfmc
+	display_name = "silkenweave jacket, marine"
+	path = /obj/item/clothing/suit/toggle/gezena/marine
+	allowed_factions = list(/datum/faction/pgf)
+
 //Suspenders
 /datum/gear/suit/suspenders
 	subtype_path = /datum/gear/suit/suspenders

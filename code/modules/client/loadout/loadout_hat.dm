@@ -78,6 +78,11 @@
 	display_name = "beret, hazard"
 	path = /obj/item/clothing/head/beret/eng/hazard
 
+/datum/gear/hat/beret/frontiersmen
+	display_name = "beret, frontiersmen"
+	path = /obj/item/clothing/head/beret/sec/frontier
+	allowed_factions = list(/datum/faction/frontiersmen)
+
 //Soft caps
 
 /datum/gear/hat/softcap
@@ -172,3 +177,8 @@
 /datum/gear/hat/ribbon
 	display_name = "ribbon, recolorable"
 	path = /obj/item/clothing/head/ribbon
+
+/datum/gear/hat/clip
+	display_name = "minutemen service cap"
+	path = /obj/item/clothing/head/clip
+	allowed_factions = list(/datum/faction/clip)

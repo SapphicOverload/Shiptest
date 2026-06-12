@@ -230,3 +230,15 @@
 /datum/gear/prescription_inhaler
 	display_name = "prescription inhaler"
 	path = /obj/item/inhaler/placebatol
+
+// FLAGS
+
+/datum/gear/ngr_flag
+	display_name = "flag, new gorlex"
+	path = /obj/item/sign/flag/ngr
+	allowed_factions = list(/datum/faction/ngr)
+
+/datum/gear/pgf_flag
+	display_name = "flag, gezena"
+	path = /obj/item/sign/flag/gezena
+	allowed_factions = list(/datum/faction/pgf)

@@ -36,6 +36,11 @@
 	display_name = "fatigues, recolorable"
 	path = /obj/item/clothing/under/rank/security/officer/camo
 
+/datum/gear/uniform/frontiersmen
+	display_name = "fatigues, frontiersmen"
+	path = /obj/item/clothing/under/frontiersmen
+	allowed_factions = list(/datum/faction/frontiersmen)
+
 //Shorts
 
 /datum/gear/uniform/athshorts
@@ -318,6 +323,15 @@
 /datum/gear/uniform/overalls_brown
 	display_name = "overalls, brown"
 	path = /obj/item/clothing/under/overalls/brown
+
+/datum/gear/uniform/overalls_marauder
+	display_name = "overalls, marauder"
+	path = /obj/item/clothing/under/syndicate/gorlex
+	allowed_factions = list(
+		/datum/faction/syndicate/ngr,
+		/datum/faction/syndicate/hardliners,
+		/datum/faction/ramzi,
+	)
 
 // skirts
 /datum/gear/uniform/shortskirt

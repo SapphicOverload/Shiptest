@@ -788,6 +788,7 @@
 
 /obj/item/clothing/neck/dogtag/loadout
 	desc = "A non-military dogtag, often worn for style in certain circles."
+	obj_flags = UNIQUE_RENAME
 
 /obj/item/clothing/neck/dogtag/gold
 	icon_state = "dogtag_gold"
