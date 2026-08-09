@@ -83,6 +83,12 @@
 	should_draw_greyscale = FALSE
 	bodytype = BODYTYPE_HUMANOID | BODYTYPE_ROBOTIC
 	biological_state = (BIO_ROBOTIC|BIO_JOINTED)
+	special_step_sounds = list(
+		'sound/effects/footstep/catwalk1.ogg',
+		'sound/effects/footstep/catwalk2.ogg',
+		'sound/effects/footstep/catwalk3.ogg',
+		'sound/effects/footstep/catwalk4.ogg',
+	)
 
 	light_brute_msg = "scratched"
 	medium_brute_msg = "dented"
@@ -101,6 +107,12 @@
 	should_draw_greyscale = FALSE
 	bodytype = BODYTYPE_HUMANOID | BODYTYPE_ROBOTIC
 	biological_state = (BIO_ROBOTIC|BIO_JOINTED)
+	special_step_sounds = list(
+		'sound/effects/footstep/catwalk1.ogg',
+		'sound/effects/footstep/catwalk2.ogg',
+		'sound/effects/footstep/catwalk3.ogg',
+		'sound/effects/footstep/catwalk4.ogg',
+	)
 
 	light_brute_msg = "scratched"
 	medium_brute_msg = "dented"

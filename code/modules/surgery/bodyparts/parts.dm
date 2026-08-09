@@ -238,6 +238,8 @@
 
 /obj/item/bodypart/leg
 	biological_state = BIO_STANDARD_JOINTED
+	/// Sounds to override barefeet walking
+	var/list/special_step_sounds
 
 /obj/item/bodypart/leg/left
 	name = "left leg"

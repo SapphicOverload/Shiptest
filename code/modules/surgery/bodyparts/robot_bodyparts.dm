@@ -76,6 +76,12 @@
 	should_draw_greyscale = FALSE
 	bodytype = BODYTYPE_HUMANOID | BODYTYPE_ROBOTIC
 	biological_state = (BIO_ROBOTIC|BIO_JOINTED)
+	special_step_sounds = list(
+		'sound/effects/footstep/catwalk1.ogg',
+		'sound/effects/footstep/catwalk2.ogg',
+		'sound/effects/footstep/catwalk3.ogg',
+		'sound/effects/footstep/catwalk4.ogg',
+	)
 
 	brute_reduction = 5
 	burn_reduction = 4
@@ -102,6 +108,12 @@
 	should_draw_greyscale = FALSE
 	bodytype = BODYTYPE_HUMANOID | BODYTYPE_ROBOTIC
 	biological_state = (BIO_ROBOTIC|BIO_JOINTED)
+	special_step_sounds = list(
+		'sound/effects/footstep/catwalk1.ogg',
+		'sound/effects/footstep/catwalk2.ogg',
+		'sound/effects/footstep/catwalk3.ogg',
+		'sound/effects/footstep/catwalk4.ogg',
+	)
 
 	brute_reduction = 5
 	burn_reduction = 4

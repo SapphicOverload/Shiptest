@@ -60,7 +60,7 @@
 			return// stealth
 	steps++
 
-	if(steps >= 6)
+	if(steps >= 8)
 		steps = 0
 
 	if(steps % 2)
@@ -115,9 +115,10 @@
 			GLOB.footstep[T.footstep][2] * volume,
 			TRUE,
 			GLOB.footstep[T.footstep][3] + e_range, falloff_distance = 1)
-	else
-		if(H.dna.species.special_step_sounds)
-			playsound(T, pick(H.dna.species.special_step_sounds), 50, TRUE, falloff_distance = 1)
+	else if(source.num_legs > 0)
+		var/obj/item/bodypart/leg/chosen_leg = pick(H.get_bodypart((steps % 4) ? BODY_ZONE_L_LEG : BODY_ZONE_R_LEG))
+		if(chosen_leg.special_step_sounds)
+			playsound(T, pick(chosen_leg.special_step_sounds), 50, TRUE, falloff_distance = 1)
 		else
 			playsound(T, pick(GLOB.barefootstep[T.barefootstep][1]),
 				GLOB.barefootstep[T.barefootstep][2] * volume,
