@@ -236,7 +236,7 @@
 /datum/gear/ngr_flag
 	display_name = "flag, new gorlex"
 	path = /obj/item/sign/flag/ngr
-	allowed_factions = list(/datum/faction/ngr)
+	allowed_factions = list(/datum/faction/syndicate/ngr)
 
 /datum/gear/pgf_flag
 	display_name = "flag, gezena"

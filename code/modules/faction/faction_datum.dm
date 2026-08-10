@@ -167,6 +167,7 @@
 /datum/faction/clip/cmm
 	name = FACTION_MINUTEMEN
 	short_name = "CLIP Minutemen"
+	flags = FACTION_CHECK_PREFIX
 	prefixes = PREFIX_MINUTEMEN
 
 /datum/faction/warra
