@@ -114,11 +114,11 @@
 	prefixes = PREFIX_NONE
 	flags = FACTION_WIKI_HIDDEN | FACTION_PLAYER_SELECT
 	allowed_factions = list(
+		/datum/faction/syndicate,
 		/datum/faction/suns,
 	)
 	hostile_factions = list(
 		/datum/faction/warra,
-		/datum/faction/frontiersmen,
 	)
 
 /datum/faction/solgov

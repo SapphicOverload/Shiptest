@@ -35,8 +35,9 @@
 	path = /obj/item/clothing/head/beret/color
 
 /datum/gear/hat/beret/aclf
-	display_name = "ACLF beret"
+	display_name = "beret, ACLF"
 	path = /obj/item/clothing/head/beret/aclf
+	allowed_factions = list(/datum/faction/syndicate/liberation_front)
 
 /datum/gear/hat/beret/departmental
 	display_name = "beret, departmental"
