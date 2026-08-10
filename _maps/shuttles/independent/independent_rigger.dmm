@@ -369,6 +369,7 @@
 /obj/machinery/atmospherics/pipe/simple/supply/hidden/layer2{
 	dir = 5
 	},
+/obj/machinery/emergency_panel,
 /turf/open/floor/plasteel/mono,
 /area/ship/hallway/central)
 "fl" = (
@@ -3531,7 +3532,7 @@
 /obj/item/storage/guncase/m12{
 	mag_count = 3
 	},
-/obj/item/gun/energy/sharplite/x46,
+/obj/item/gun/energy/sharplite/amperage,
 /turf/open/floor/plasteel/dark,
 /area/ship/security)
 "Pg" = (

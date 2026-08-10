@@ -11,6 +11,14 @@
 	display_name = "winter coat"
 	path = /obj/item/clothing/suit/hooded/wintercoat
 
+/datum/gear/suit/parkaclip
+	display_name = "parka, serene sporting"
+	path = /obj/item/clothing/suit/hooded/parka/serene
+
+/datum/gear/suit/parka
+	display_name = "parka, colorable"
+	path = /obj/item/clothing/suit/hooded/parka
+
 //JACKETS
 /datum/gear/suit/jacket
 	subtype_path = /datum/gear/suit/jacket
@@ -54,6 +62,10 @@
 /datum/gear/suit/jacket/navy
 	display_name = "suit jacket, navy"
 	path = /obj/item/clothing/suit/lawyer/navy
+
+/datum/gear/suit/toggle/aclf
+	display_name = "ACLF leather jacket"
+	path = /obj/item/clothing/suit/toggle/aclf
 
 /datum/gear/suit/toggle/flight
 	display_name = "flight jacket, colorable"
@@ -162,6 +174,10 @@
 	path = /obj/item/clothing/suit/toggle/suspenders/gray
 
 //Misc
+
+/datum/gear/suit/apron
+	display_name = "apron"
+	path = /obj/item/clothing/suit/apron
 
 /datum/gear/suit/labcoat
 	display_name = "labcoat"

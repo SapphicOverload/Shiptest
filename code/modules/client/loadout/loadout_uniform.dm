@@ -41,6 +41,10 @@
 	path = /obj/item/clothing/under/frontiersmen
 	allowed_factions = list(/datum/faction/frontiersmen)
 
+/datum/gear/uniform/shortjumpsuit
+	display_name = "short jumpsuit, recolorable"
+	path = /obj/item/clothing/under/shortjumpsuit
+
 //Shorts
 
 /datum/gear/uniform/athshorts
