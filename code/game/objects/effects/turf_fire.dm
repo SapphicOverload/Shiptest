@@ -180,7 +180,7 @@
 			turf_to_spread.ignite_turf(fire_power * TURF_FIRE_SPREAD_RATE)
 		UpdateFireState()
 
-	open_turf.hotspot_expose(TURF_FIRE_TEMP_BASE + (TURF_FIRE_TEMP_INCREMENT_PER_POWER*fire_power), TURF_FIRE_VOLUME)
+	open_turf.fire_act(TURF_FIRE_TEMP_BASE + (TURF_FIRE_TEMP_INCREMENT_PER_POWER*fire_power), TURF_FIRE_VOLUME)
 	for(var/atom/movable/burning_atom as anything in open_turf)
 		fire_power += burning_atom.fire_act(TURF_FIRE_TEMP_BASE + (TURF_FIRE_TEMP_INCREMENT_PER_POWER*fire_power), TURF_FIRE_VOLUME)
 	if(interact_with_atmos)

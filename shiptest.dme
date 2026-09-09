@@ -766,6 +766,7 @@
 #include "code\datums\elements\bsa_blocker.dm"
 #include "code\datums\elements\cleaning.dm"
 #include "code\datums\elements\climbable.dm"
+#include "code\datums\elements\connect_adjacent_turfs.dm"
 #include "code\datums\elements\connect_loc.dm"
 #include "code\datums\elements\death_drops.dm"
 #include "code\datums\elements\digitalcamo.dm"

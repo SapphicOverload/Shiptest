@@ -17,7 +17,7 @@
 	pass_flags_self = PASSGLASS
 	var/state = WINDOW_OUT_OF_FRAME
 	var/reinf = FALSE
-	var/heat_resistance = 800
+	var/heat_resistance = 1100
 	var/decon_speed = 30
 	var/wtype = "glass"
 	var/fulltile = FALSE
@@ -40,6 +40,7 @@
 	. = ..()
 	if(flags_1 & NODECONSTRUCT_1)
 		return
+	. += span_notice("Its safety rating claims it can withstand <b>[heat_resistance] kelvin</b>.")
 	if(reinf)
 		if(anchored && state == WINDOW_SCREWED_TO_FRAME)
 			. += span_notice("The window is <b>screwed</b> to the frame.")
@@ -71,10 +72,14 @@
 	real_explosion_block = explosion_block
 	explosion_block = EXPLOSION_BLOCK_PROC
 
+	var/static/list/adj_connections = list(
+		COMSIG_ATOM_FIRE_ACT = PROC_REF(on_adjacent_fire_act),
+	)
 	var/static/list/loc_connections = list(
 		COMSIG_ATOM_EXIT = PROC_REF(on_exit),
 	)
 
+	AddElement(/datum/element/connect_adjacent_turfs, adj_connections)
 	if (flags_1 & ON_BORDER_1)
 		AddElement(/datum/element/connect_loc, loc_connections)
 
@@ -371,10 +376,18 @@
 	. += crack_overlay
 
 /obj/structure/window/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+	if(exposed_temperature > heat_resistance)
+		take_damage(round(exposed_volume / 200), BURN, FIRE)
+	return ..()
 
-	if(exposed_temperature > (T0C + heat_resistance))
-		take_damage(round(exposed_volume / 100), BURN, 0, 0)
-	..()
+/obj/structure/window/proc/on_adjacent_fire_act(turf/open/adjacent_turf, exposed_temperature, exposed_volume)
+	SIGNAL_HANDLER
+	if(!isopenturf(adjacent_turf))
+		return
+	var/obj/machinery/door/poddoor/blast_door = locate(/obj/machinery/door/poddoor) in loc
+	if(blast_door?.density)
+		return
+	temperature_expose(adjacent_turf.return_air(), exposed_temperature, exposed_volume)
 
 /obj/structure/window/get_dumping_location(obj/item/storage/source,mob/user)
 	return null
@@ -407,7 +420,7 @@
 	desc = "A window that is reinforced with metal rods."
 	icon_state = "rwindow"
 	reinf = TRUE
-	heat_resistance = 1600
+	heat_resistance = 6000
 	armor = list("melee" = 60, "bullet" = 20, "laser" = 10, "energy" = 0, "bomb" = 25, "bio" = 100, "rad" = 100, "fire" = 80, "acid" = 100)
 	explosion_block = 1
 	damage_deflection = 5		//WS Edit - Weakens R-Windows
@@ -808,7 +821,7 @@
 	canSmoothWith = list(SMOOTH_GROUP_PAPERFRAME)
 	glass_amount = 2
 	glass_type = /obj/item/stack/sheet/paperframes
-	heat_resistance = 233
+	heat_resistance = 500
 	decon_speed = 10
 	CanAtmosPass = ATMOS_PASS_YES
 	resistance_flags = FLAMMABLE

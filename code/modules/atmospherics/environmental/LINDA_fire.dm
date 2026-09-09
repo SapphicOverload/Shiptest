@@ -30,6 +30,12 @@
 	if((exposed_temperature > PLASMA_MINIMUM_BURN_TEMPERATURE) && has_fuel)
 		active_hotspot = new /obj/effect/hotspot(src, exposed_volume*25, exposed_temperature)
 
+/turf/open/fire_act(exposed_temperature, exposed_volume, no_exposure = FALSE)
+	. = ..()
+	if(no_exposure)
+		return
+	hotspot_expose(exposed_temperature, exposed_volume)
+
 //This is the icon for fire on turfs, also helps for nurturing small fires until they are full tile
 /obj/effect/hotspot
 	anchored = TRUE
@@ -91,6 +97,7 @@
 			volume = affected.reaction_results["fire"]*FIRE_GROWTH_RATE
 			location.assume_air(affected)
 
+	location.fire_act(temperature, volume, TRUE)
 	for(var/A in location)
 		var/atom/AT = A
 		if(!QDELETED(AT) && AT != src) // It's possible that the item is deleted in temperature_expose
