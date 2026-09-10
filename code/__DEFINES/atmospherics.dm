@@ -158,10 +158,12 @@
 #define MAX_TRANSFER_RATE 400
 /// How many percent of the contents that an overclocked volume pumps leak into the air
 #define VOLUME_PUMP_LEAK_AMOUNT 0.2
-/// Threshold where pipes begin leaking their contents
-#define PIPE_LEAK_PRESSURE (100*ONE_ATMOSPHERE)
+/// Threshold where pipes may begin leaking their contents (MUST be higher than MAX_OUTPUT_PRESSURE or else)
+#define PIPE_LEAK_PRESSURE (50*ONE_ATMOSPHERE)
 /// Threshold where pipes just straight up explode
-#define PIPE_FRAGMENT_PRESSURE (150*ONE_ATMOSPHERE)
+#define PIPE_FRAGMENT_PRESSURE (80*ONE_ATMOSPHERE)
+/// Divisor for pressure when calculating the chance of a pipe leaking or bursting
+#define PIPE_PRESSURE_SCALE (10*ONE_ATMOSPHERE)
 //used for device_type vars
 #define UNARY 1
 #define BINARY 2

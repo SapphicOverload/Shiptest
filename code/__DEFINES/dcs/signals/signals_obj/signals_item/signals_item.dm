@@ -66,6 +66,7 @@
 #define COMSIG_MINE_TRIGGERED "minegoboom" ///from [/obj/item/mine/proc/trigger_mine]:
 #define COMSIG_MOB_PELLETS "mobgoboom" ///from [/mob/living/simple_animal/hostile/automated/walkmine/death()]
 #define COMSIG_SUPPLYPOD_LANDED "supplypodgoboom" ///from [/obj/structure/closet/supplypod/proc/endlaunch]:
+#define COMSIG_PIPE_EXPLOSION "pipeoshaviolation" ///from [/datum/pipeline/handle_pressure]
 
 // Item mouse siganls
 #define COMSIG_ITEM_MOUSE_EXIT "item_mouse_exit"				//from base of obj/item/MouseExited(): (location, control, params)

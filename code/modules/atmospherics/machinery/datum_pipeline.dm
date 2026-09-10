@@ -34,10 +34,12 @@
 	return ..()
 
 /datum/pipeline/process(seconds_per_tick)
-	if(!update || building)
+	if(building)
 		return
-	reconcile_air()
-	update = air.react(src)
+	if(update)
+		reconcile_air()
+		update = air.react(src)
+	handle_pressure(seconds_per_tick)
 
 /datum/pipeline/proc/build_pipeline(obj/machinery/atmospherics/base)
 	if(QDELETED(base))
@@ -272,3 +274,25 @@
 /datum/pipeline/proc/reconcile_air()
 	var/list/datum/gas_mixture/GL = get_all_connected_airs()
 	equalize_all_gases_in_list(GL)
+
+/datum/pipeline/proc/handle_pressure(seconds_per_tick)
+	var/pressure = air.return_pressure()
+	if(pressure < PIPE_LEAK_PRESSURE)
+		return
+	if(!prob(pressure / PIPE_PRESSURE_SCALE))
+		return
+
+	var/obj/machinery/atmospherics/pipe/atmos_pipe = pick(members)
+	var/turf/atmos_turf = get_turf(atmos_pipe)
+	playsound(atmos_turf, 'sound/machines/clockcult/steam_whoosh.ogg', 50)
+	if(pressure > PIPE_FRAGMENT_PRESSURE)
+		atmos_pipe.AddComponent(/datum/component/pellet_cloud, projectile_type = /obj/projectile/bullet/shrapnel/pipe, magnitude = 7)
+		atmos_turf.assume_air(air)
+		atmos_turf.fire_act(max(air.return_temperature(), FIRE_MINIMUM_TEMPERATURE_TO_EXIST), CELL_VOLUME / 2)
+		air.clear()
+		SEND_SIGNAL(atmos_pipe, COMSIG_PIPE_EXPLOSION)
+		// this has diminishing returns to prevent planetwide fusion pipe bombs
+		dyn_explosion(atmos_pipe, (pressure - PIPE_FRAGMENT_PRESSURE / 2) / PIPE_PRESSURE_SCALE)
+		qdel(atmos_pipe)
+	else
+		atmos_turf.assume_air(air.remove_ratio(atmos_pipe.volume / air.return_volume()))

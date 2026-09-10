@@ -777,7 +777,7 @@
 	wtype = "shuttle"
 	fulltile = TRUE
 	flags_1 = PREVENT_CLICK_UNDER_1
-	heat_resistance = 1600
+	heat_resistance = 6000
 	armor = list("melee" = 85, "bullet" = 20, "laser" = 20, "energy" = 0, "bomb" = 50, "bio" = 100, "rad" = 100, "fire" = 80, "acid" = 100)
 	smoothing_flags = SMOOTH_BITMASK
 	smoothing_groups = list(SMOOTH_GROUP_SHUTTLE_PARTS, SMOOTH_GROUP_WINDOW_FULLTILE,SMOOTH_GROUP_AIRLOCK)

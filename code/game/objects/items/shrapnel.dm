@@ -156,6 +156,40 @@
 	armour_penetration = -10
 	wound_bonus = 10
 
+// Low damage, strong wounding, 25% chance to take an eye. Wear your safety goggles when messing with overpressurized pipes!
+/obj/projectile/bullet/shrapnel/pipe
+	name = "flying pipe fragment"
+	damage = 5
+	range = 5
+	armour_penetration = -30
+
+/obj/projectile/bullet/shrapnel/pipe/on_hit(atom/target, blocked, pierce_hit)
+	. = ..()
+	if(!ishuman(target))
+		return
+	var/mob/living/carbon/human/victim = target
+	if(isclothing(victim.glasses) && victim.glasses.flags_cover & SEALS_EYES)
+		return
+	if(isclothing(victim.head) && victim.head.flags_cover & (STOPSPRESSUREDAMAGE|SEALS_EYES))
+		return
+	if(!prob(25))
+		return
+
+	var/obj/item/organ/eyes/victimeyes = victim.getorganslot(ORGAN_SLOT_EYES)
+	if(!victimeyes)
+		return
+
+	var/valid_sides = list()
+	if(!(victimeyes.scarring & RIGHT_EYE_SCAR))
+		valid_sides += RIGHT_EYE_SCAR
+	if(!(victimeyes.scarring & LEFT_EYE_SCAR))
+		valid_sides += LEFT_EYE_SCAR
+	if(!prob(50 * length(valid_sides)))
+		return
+
+	var/picked_side = pick(valid_sides)
+	var/datum/wound/pierce/bleed/severe/eye/osha_violation = new
+	osha_violation.apply_wound(victim.get_bodypart(BODY_ZONE_HEAD), wound_source = name, eye_scar = picked_side)
 
 /obj/projectile/bullet/pellet/stingball
 	name = "ballistic gel clump"
