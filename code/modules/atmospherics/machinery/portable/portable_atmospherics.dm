@@ -13,13 +13,15 @@
 
 	var/volume = 0
 
-	var/maximum_pressure = 90 * ONE_ATMOSPHERE
+	var/fragment_type = /obj/projectile/bullet/shrapnel/pipe/tank
+	var/maximum_pressure = 45 * ONE_ATMOSPHERE
 
 /obj/machinery/portable_atmospherics/Initialize(mapload)
 	. = ..()
 	air_contents = new(volume)
 	air_contents.set_temperature(T20C)
 	SSair.start_processing_machine(src, mapload)
+	AddComponent(/datum/component/pellet_cloud, projectile_type=fragment_type, magnitude=rand(7, 12), blast_signal=COMSIG_ATOM_BREAK)
 
 /obj/machinery/portable_atmospherics/Destroy()
 	disconnect()
@@ -27,6 +29,10 @@
 	SSair.stop_processing_machine(src)
 
 	return ..()
+
+/obj/machinery/portable_atmospherics/examine(mob/user)
+	. = ..()
+	. += span_notice("It's rated for up to <b>[maximum_pressure] kPa</b>.")
 
 /obj/machinery/portable_atmospherics/ex_act(severity, target)
 	if(severity == 1 || target == src)
@@ -40,9 +46,18 @@
 
 	return ..()
 
+// Fires heat up canisters, potentially causing an explosion
+/obj/machinery/portable_atmospherics/fire_act(exposed_temperature, exposed_volume)
+	. = ..()
+	var/current_temp = air_contents.return_temperature()
+	air_contents.set_temperature(current_temp + (exposed_temperature - current_temp) / (10 * air_contents.return_volume() / exposed_volume))
+
 /obj/machinery/portable_atmospherics/process_atmos(seconds_per_tick)
 	if(!connected_port) // Pipe network handles reactions if connected.
 		air_contents.react(src)
+	var/pressure = air_contents.return_pressure()
+	if(pressure > maximum_pressure + 5*ONE_ATMOSPHERE)
+		take_damage(rand(1, 10) + 5 * (pressure / maximum_pressure)**2, BURN, null, prob(15))
 
 /obj/machinery/portable_atmospherics/return_air()
 	return air_contents

@@ -301,7 +301,7 @@
 	visible_message(span_warning("[src] explodes!"))
 	explosion(get_turf(loc),mine_devastation,mine_heavy,mine_light,flame_range = mine_flame, adminlog = FALSE)
 	if(shrapnel_magnitude > 0)
-		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_magnitude)
+		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_magnitude, blast_signal=COMSIG_MOB_PELLETS)
 	SEND_SIGNAL(src, COMSIG_MOB_PELLETS)
 	qdel(src)
 

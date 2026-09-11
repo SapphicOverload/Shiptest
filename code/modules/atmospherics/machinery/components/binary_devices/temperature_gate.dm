@@ -53,7 +53,7 @@
 
 
 /obj/machinery/atmospherics/components/binary/temperature_gate/process_atmos(seconds_per_tick)
-
+	..()
 	if(!on || !is_operational)
 		return
 

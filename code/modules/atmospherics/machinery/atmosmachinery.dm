@@ -26,6 +26,11 @@
 	var/piping_layer = PIPING_LAYER_DEFAULT
 	var/pipe_flags = NONE
 
+	/// Threshold for leaking gas
+	var/pressure_limit_lower = PIPE_LEAK_PRESSURE
+	/// Threshold for explosion
+	var/pressure_limit_upper = PIPE_FRAGMENT_PRESSURE
+
 	///This only works on pipes, because they have 1000 subtypes wich need to be visible and invisible under tiles, so we track this here
 	var/hide = TRUE
 
@@ -49,6 +54,7 @@
 
 /obj/machinery/atmospherics/examine(mob/user)
 	. = ..()
+	. += span_notice("It's rated for up to <b>[pressure_limit_lower] kPa</b>.")
 	if(is_type_in_list(src, GLOB.ventcrawl_machinery) && isliving(user))
 		var/mob/living/L = user
 		if(L.ventcrawler)
@@ -194,6 +200,31 @@
 	if(ref_position)
 		nodes[ref_position] = null
 	update_appearance()
+
+/// Handles overpressure. Returns TRUE if the pipe exploded.
+/obj/machinery/atmospherics/proc/handle_pressure(datum/gas_mixture/air, seconds_per_tick)
+	var/pressure = air.return_pressure()
+	if(pressure < pressure_limit_lower)
+		return
+	if(!SPT_PROB(pressure / PIPE_PRESSURE_SCALE, seconds_per_tick))
+		return
+
+	var/turf/atmos_turf = get_turf(src)
+	playsound(atmos_turf, 'sound/machines/clockcult/steam_whoosh.ogg', 50)
+	if(pressure > pressure_limit_upper)
+		visible_message(span_userdanger("[src] suddenly bursts, sending debris everywhere!"))
+		AddComponent(/datum/component/pellet_cloud, projectile_type = /obj/projectile/bullet/shrapnel/pipe, magnitude = rand(5, 10), blast_signal = COMSIG_PIPE_EXPLOSION)
+		atmos_turf.assume_air(air)
+		atmos_turf.fire_act(max(air.return_temperature(), FIRE_MINIMUM_TEMPERATURE_TO_EXIST), CELL_VOLUME / 2)
+		air.clear()
+		SEND_SIGNAL(src, COMSIG_PIPE_EXPLOSION)
+		// this has diminishing returns to prevent planetwide fusion pipe bombs
+		dyn_explosion(src, (pressure - pressure_limit_upper / 2) / PIPE_PRESSURE_SCALE)
+		deconstruct(FALSE)
+		return TRUE
+	else
+		visible_message(span_warning("[src] makes a hissing noise."))
+		atmos_turf.assume_air(air.remove_ratio(35 / air.return_volume()))
 
 /obj/machinery/atmospherics/attackby(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/pipe)) //lets you autodrop

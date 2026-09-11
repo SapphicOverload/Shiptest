@@ -148,6 +148,9 @@
 	if(air_contents.return_pressure() >= 50 * ONE_ATMOSPHERE)
 		return FALSE
 
+	if(isnull(loc))
+		return FALSE
+
 	var/turf/location = loc
 	scrub(location, seconds_per_tick)
 	if(widenet)

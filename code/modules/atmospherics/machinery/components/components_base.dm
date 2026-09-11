@@ -70,6 +70,14 @@
 	else
 		. = getpipeimage('icons/obj/atmospherics/components/binary_devices.dmi', state, dir, piping_layer = shift_underlay_only ? piping_layer : 3)
 
+/obj/machinery/atmospherics/components/process_atmos(seconds_per_tick)
+	for(var/datum/gas_mixture/air as anything in airs)
+		if(handle_pressure(air, seconds_per_tick / airs.len))
+			continue
+	if(QDELETED(src))
+		on = FALSE
+		return PROCESS_KILL
+
 // Pipenet stuff; housekeeping
 
 /obj/machinery/atmospherics/components/nullifyNode(i)

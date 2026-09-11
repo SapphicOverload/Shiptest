@@ -463,7 +463,7 @@
 	explosion(loc, range_devastation, range_heavy, range_light, range_flash, 1, 0, range_flame, 0, 1, \
 	light_dam = light_damage, light_item_dam = light_item_damage, heavy_dam = heavy_damage, heavy_item_dam = heavy_item_damage)
 	if(shrapnel_magnitude > 0)
-		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_magnitude)
+		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_magnitude, blast_signal=COMSIG_MINE_TRIGGERED)
 
 
 /obj/item/mine/pressure/explosive/rusty
@@ -591,7 +591,7 @@
 	explosion(loc, range_devastation, range_heavy, range_light, range_flash, 1, 0, range_flame, 0, 1, \
 	light_dam = light_damage, light_item_dam = light_item_damage, heavy_dam = heavy_damage, heavy_item_dam = heavy_item_damage)
 	if(shrapnel_magnitude > 0)
-		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_magnitude)
+		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_magnitude, blast_signal=COMSIG_MINE_TRIGGERED)
 
 
 ///like all real 'less' than lethal crowd control options this is, in fact, not very good at being nonlethal
@@ -707,9 +707,9 @@
 		var/casingammo = casingtype.projectile_type
 		var/shredammo = shredtype.projectile_type
 		if(casingtype)
-			AddComponent(/datum/component/pellet_cloud, projectile_type = casingammo, magnitude = 1)
+			AddComponent(/datum/component/pellet_cloud, projectile_type = casingammo, magnitude = 1, blast_signal = COMSIG_MINE_TRIGGERED)
 		if(shredtype)
-			AddComponent(/datum/component/pellet_cloud, projectile_type = shredammo, magnitude = 2)
+			AddComponent(/datum/component/pellet_cloud, projectile_type = shredammo, magnitude = 2, blast_signal = COMSIG_MINE_TRIGGERED)
 	else
 		var/blastloc = get_step_towards(src, target_turf)
 		explosion(blastloc, range_devastation, range_heavy, range_light, range_flash, 1, 0, range_flame, 0, 1, \

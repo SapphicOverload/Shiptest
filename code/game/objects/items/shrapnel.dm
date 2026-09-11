@@ -156,12 +156,15 @@
 	armour_penetration = -10
 	wound_bonus = 10
 
-// Low damage, strong wounding, 25% chance to take an eye. Wear your safety goggles when messing with overpressurized pipes!
+// guaranteed to take an eye on head impact if the target still has both, because i'm evil
 /obj/projectile/bullet/shrapnel/pipe
 	name = "flying pipe fragment"
 	damage = 5
 	range = 5
 	armour_penetration = -30
+
+/obj/projectile/bullet/shrapnel/pipe/tank
+	name = "flying tank fragment"
 
 /obj/projectile/bullet/shrapnel/pipe/on_hit(atom/target, blocked, pierce_hit)
 	. = ..()
@@ -172,24 +175,15 @@
 		return
 	if(isclothing(victim.head) && victim.head.flags_cover & (STOPSPRESSUREDAMAGE|SEALS_EYES))
 		return
-	if(!prob(25))
+	if(def_zone != BODY_ZONE_HEAD)
 		return
 
 	var/obj/item/organ/eyes/victimeyes = victim.getorganslot(ORGAN_SLOT_EYES)
-	if(!victimeyes)
+	if(!victimeyes || victimeyes.scarring)
 		return
 
-	var/valid_sides = list()
-	if(!(victimeyes.scarring & RIGHT_EYE_SCAR))
-		valid_sides += RIGHT_EYE_SCAR
-	if(!(victimeyes.scarring & LEFT_EYE_SCAR))
-		valid_sides += LEFT_EYE_SCAR
-	if(!prob(50 * length(valid_sides)))
-		return
-
-	var/picked_side = pick(valid_sides)
 	var/datum/wound/pierce/bleed/severe/eye/osha_violation = new
-	osha_violation.apply_wound(victim.get_bodypart(BODY_ZONE_HEAD), wound_source = name, eye_scar = picked_side)
+	osha_violation.apply_wound(victim.get_bodypart(BODY_ZONE_HEAD), wound_source = name)
 
 /obj/projectile/bullet/pellet/stingball
 	name = "ballistic gel clump"

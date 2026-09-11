@@ -15,6 +15,9 @@
 	name = "gas pump"
 	desc = "A pump that moves gas by pressure."
 
+	pressure_limit_lower = 100*ONE_ATMOSPHERE
+	pressure_limit_upper = 120*ONE_ATMOSPHERE
+
 	can_unwrench = TRUE
 	shift_underlay_only = FALSE
 
@@ -60,7 +63,7 @@
 	icon_state = (on && is_operational) ? "pump_on-[set_overlay_offset(piping_layer)]" : "pump_off-[set_overlay_offset(piping_layer)]"
 
 /obj/machinery/atmospherics/components/binary/pump/process_atmos(seconds_per_tick)
-//	..()
+	..()
 	if(!on || !is_operational)
 		return
 	var/datum/gas_mixture/air1 = airs[1]

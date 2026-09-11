@@ -50,12 +50,27 @@
 	/// If the parent tried deleting and we're not done yet, we send it to nullspace then delete it after
 	var/queued_delete = FALSE
 
+	/// If specified, this triggers a blast of pellets around the source
+	var/blast_signal
+	/// If specified, this signal will start searching for anyone covering the source
+	var/cover_signal
+	/// If specified, this triggers a spread of pellets in a direction from the source
+	var/shoot_signal
+
 	/// for if we're an ammo casing being fired
 	var/mob/living/shooter
 
-/datum/component/pellet_cloud/Initialize(projectile_type=/obj/item/shrapnel, magnitude=5)
-	if(!isammocasing(parent) && !isgrenade(parent) && !islandmine(parent) && !issupplypod(parent) && !isanimal(parent) && !istype(parent, /obj/machinery/atmospherics/pipe))
+/datum/component/pellet_cloud/Initialize(projectile_type = /obj/item/shrapnel, magnitude = 5, blast_signal = null, cover_signal = null, shoot_signal = null)
+	if(!isatom(parent))
 		return COMPONENT_INCOMPATIBLE
+
+	if(!blast_signal)
+		stack_trace("[type] was created without specifying a signal to actually trigger it!")
+		return COMPONENT_INCOMPATIBLE
+
+	src.blast_signal = blast_signal
+	src.cover_signal = cover_signal
+	src.shoot_signal = shoot_signal
 
 	if(magnitude < 1)
 		stack_trace("Invalid magnitude [magnitude] < 1 on pellet_cloud, parent: [parent]")
@@ -78,22 +93,22 @@
 
 /datum/component/pellet_cloud/RegisterWithParent()
 	RegisterSignal(parent, COMSIG_PREQDELETED, PROC_REF(nullspace_parent))
-	if(isammocasing(parent))
-		RegisterSignal(parent, COMSIG_PELLET_CLOUD_INIT, PROC_REF(create_casing_pellets))
-	else if(isgrenade(parent))
-		RegisterSignal(parent, COMSIG_GRENADE_ARMED, PROC_REF(grenade_armed))
-		RegisterSignal(parent, COMSIG_GRENADE_PRIME, PROC_REF(create_blast_pellets))
-	else if(islandmine(parent))
-		RegisterSignal(parent, COMSIG_MINE_TRIGGERED, PROC_REF(create_blast_pellets))
-	else if(isanimal(parent))
-		RegisterSignal(parent, COMSIG_MOB_PELLETS, PROC_REF(create_blast_pellets))
-	else if(issupplypod(parent))
-		RegisterSignal(parent, COMSIG_SUPPLYPOD_LANDED, PROC_REF(create_blast_pellets))
-	else if(istype(parent, /obj/machinery/atmospherics/pipe))
-		RegisterSignal(parent, COMSIG_PIPE_EXPLOSION, PROC_REF(create_blast_pellets))
+	if(blast_signal)
+		RegisterSignal(parent, blast_signal, PROC_REF(create_blast_pellets))
+	if(cover_signal)
+		RegisterSignal(parent, cover_signal, PROC_REF(grenade_armed))
+	if(shoot_signal)
+		RegisterSignal(parent, shoot_signal, PROC_REF(create_casing_pellets))
 
 /datum/component/pellet_cloud/UnregisterFromParent()
-	UnregisterSignal(parent, list(COMSIG_PREQDELETED, COMSIG_PELLET_CLOUD_INIT, COMSIG_GRENADE_PRIME, COMSIG_GRENADE_ARMED, COMSIG_MOVABLE_MOVED, COMSIG_MINE_TRIGGERED, COMSIG_ITEM_DROPPED, COMSIG_MOB_PELLETS))
+	var/list/signals = list(COMSIG_PREQDELETED)
+	if(blast_signal)
+		signals += blast_signal
+	if(cover_signal)
+		signals += cover_signal
+	if(shoot_signal)
+		signals += shoot_signal
+	UnregisterSignal(parent, signals)
 
 
 /**

@@ -86,7 +86,7 @@
 			to_chat(user, span_warning("You prime [src]! [capitalize(DisplayTimeText(det_time))]!"))
 	if(shrapnel_type && shrapnel_radius)
 		shrapnel_initialized = TRUE
-		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_radius)
+		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_radius, blast_signal=COMSIG_GRENADE_PRIME, cover_signal=COMSIG_GRENADE_ARMED)
 	playsound(src, 'sound/weapons/armbomb.ogg', volume, TRUE)
 	active = TRUE
 	icon_state = initial(icon_state) + "_active"
@@ -96,7 +96,7 @@
 /obj/item/grenade/proc/prime()
 	if(shrapnel_type && shrapnel_radius && !shrapnel_initialized) // add a second check for adding the component in case whatever triggered the grenade went straight to prime (badminnery for example)
 		shrapnel_initialized = TRUE
-		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_radius)
+		AddComponent(/datum/component/pellet_cloud, projectile_type=shrapnel_type, magnitude=shrapnel_radius, blast_signal=COMSIG_GRENADE_PRIME, cover_signal=COMSIG_GRENADE_ARMED)
 
 	SEND_SIGNAL(src, COMSIG_GRENADE_PRIME)
 	if(ex_dev || ex_heavy || ex_light || ex_flame)

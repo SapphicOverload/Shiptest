@@ -43,6 +43,8 @@
 /obj/machinery/atmospherics/pipe/proc/releaseAirToTurf()
 	if(air_temporary)
 		var/turf/T = loc
+		if(isnull(T))
+			return
 		T.assume_air(air_temporary)
 		air_update_turf()
 

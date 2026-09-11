@@ -59,7 +59,7 @@
 	icon_state = on && is_operational ? "volpump_on-[set_overlay_offset(piping_layer)]" : "volpump_off-[set_overlay_offset(piping_layer)]"
 
 /obj/machinery/atmospherics/components/binary/volume_pump/process_atmos(seconds_per_tick)
-//	..()
+	..()
 	if(!on || !is_operational)
 		return
 
@@ -71,10 +71,10 @@
 	var/input_starting_pressure = air1.return_pressure()
 	var/output_starting_pressure = air2.return_pressure()
 
-	if((input_starting_pressure < 0.01) || ((output_starting_pressure > 9000))&&!overclocked)
+	if((input_starting_pressure < 0.01) || ((output_starting_pressure > MAX_OUTPUT_PRESSURE) && !overclocked))
 		return
 
-	if(overclocked && (output_starting_pressure-input_starting_pressure > 1000))//Overclocked pumps can only force gas a certain amount.
+	if(overclocked && (output_starting_pressure-input_starting_pressure > MAX_OUTPUT_PRESSURE))//Overclocked pumps can only force gas a certain amount.
 		return
 
 	if(overclocked)//Some of the gas from the mixture leaks to the environment when overclocked

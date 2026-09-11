@@ -7,7 +7,7 @@
 	icon_state = "yellow"
 	density = TRUE
 	base_icon_state = "yellow" //Used to make dealing with breaking the canister less hellish.
-	volume = 1000
+	volume = 2000
 	armor = list("melee" = 50, "bullet" = 50, "laser" = 50, "energy" = 100, "bomb" = 10, "bio" = 100, "rad" = 100, "fire" = 80, "acid" = 50)
 	max_integrity = 250
 	integrity_failure = 0.4
