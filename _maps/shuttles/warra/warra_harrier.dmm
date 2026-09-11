@@ -2844,7 +2844,8 @@
 	dir = 8
 	},
 /obj/structure/grille,
-/obj/structure/window/reinforced/fulltile/shuttle,
+/obj/structure/window/plasma/reinforced/fulltile,
+/obj/structure/window/plasma/reinforced/fulltile,
 /turf/open/floor/plating,
 /area/ship/engineering/engine)
 "qr" = (
@@ -6363,7 +6364,7 @@
 /area/ship/crew/canteen)
 "Jk" = (
 /obj/structure/grille,
-/obj/structure/window/reinforced/fulltile/shuttle,
+/obj/structure/window/plasma/reinforced/fulltile,
 /turf/open/floor/plating,
 /area/ship/engineering/engine)
 "Jl" = (
@@ -7580,7 +7581,7 @@
 	dir = 8
 	},
 /obj/structure/grille,
-/obj/structure/window/reinforced/fulltile/shuttle,
+/obj/structure/window/plasma/reinforced/fulltile,
 /turf/open/floor/plating,
 /area/ship/engineering/engine)
 "OX" = (

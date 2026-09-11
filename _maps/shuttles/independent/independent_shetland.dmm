@@ -516,10 +516,10 @@
 /area/ship/engineering/engine)
 "ce" = (
 /obj/structure/grille,
-/obj/structure/window/reinforced/fulltile,
 /obj/machinery/atmospherics/pipe/layer_manifold/visible{
 	dir = 4
 	},
+/obj/structure/window/plasma/reinforced/fulltile,
 /turf/open/floor/plating,
 /area/ship/engineering/engine)
 "cj" = (
@@ -6720,7 +6720,7 @@
 /area/ship/cargo)
 "EN" = (
 /obj/structure/grille,
-/obj/structure/window/reinforced/fulltile,
+/obj/structure/window/plasma/reinforced/fulltile,
 /turf/open/floor/plating,
 /area/ship/engineering/engine)
 "EO" = (
