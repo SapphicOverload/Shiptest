@@ -49,8 +49,9 @@
 // Fires heat up canisters, potentially causing an explosion
 /obj/machinery/portable_atmospherics/fire_act(exposed_temperature, exposed_volume)
 	. = ..()
-	var/current_temp = air_contents.return_temperature()
-	air_contents.set_temperature(current_temp + (exposed_temperature - current_temp) / (10 * air_contents.return_volume() / exposed_volume))
+	var/datum/gas_mixture/temp_gas = air_contents.remove_ratio(exposed_volume / air_contents.return_volume())
+	temp_gas.set_temperature(exposed_temperature)
+	air_contents.merge(temp_gas)
 
 /obj/machinery/portable_atmospherics/process_atmos(seconds_per_tick)
 	if(!connected_port) // Pipe network handles reactions if connected.
